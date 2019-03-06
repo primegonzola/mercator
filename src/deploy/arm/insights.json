@@ -1,0 +1,38 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "apiVersions": {
+            "type": "object"
+        },        
+        "uniqueNameFix": {
+            "type": "string"
+        }
+    },
+    "variables": {
+        "apiVersions": "[parameters('apiVersions')]",
+        "uniqueNameFix": "[parameters('uniqueNameFix')]",
+        "name": "[concat('insights-ai-',variables('uniqueNameFix'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Insights/components",
+            "apiVersion": "[variables('apiVersions').appInsights]",
+            "name": "[variables('name')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "applicationId": "[variables('name')]"
+            }
+        }
+    ],
+    "outputs": {
+        "workspaceName": {
+            "value": "[variables('name')]",
+            "type": "string"
+        },
+        "workspaceKey": {
+            "value": "[reference(concat('microsoft.insights/components/', variables('name'))).InstrumentationKey]",
+            "type": "string"
+        }
+    }
+}

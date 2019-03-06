@@ -1,0 +1,10 @@
+{
+  "name": "monitor-events",
+  "description": "monitor-events",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "files": [
+    "./dist"
+  ]
+}

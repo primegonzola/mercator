@@ -1,0 +1,72 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "apiVersions": {
+      "value": {
+        "appInsights": "<appInsightsApiVersion>",
+        "applicationGateways": "<applicationGatewaysApiVersion>",
+        "autoScaleSettings": "<autoScaleSettingsApiVersion>",
+        "deployments": "<deploymentsApiVersion>",
+        "images": "<imagesApiVersion>",
+        "loadBalancers": "<loadBalancersApiVersion>",
+        "networkInterfaces": "<networkInterfacesApiVersion>",
+        "networkSecurityGroups": "<networkSecurityGroupsApiVersion>",
+        "publicIPAddresses": "<publicIPAddressesApiVersion>",
+        "serverFarms": "<serverFarmsApiVersion>",
+        "sites": "<sitesApiVersion>",
+        "sitesExtensions": "<sitesExtensionsApiVersion>",
+        "storageAccounts": "<storageAccountsApiVersion>",
+        "virtualMachines": "<virtualMachinesApiVersion>",
+        "virtualMachinesExtensions": "<virtualMachinesExtensionsApiVersion>",
+        "virtualMachineScaleSets": "<virtualMachineScaleSetsApiVersion>",
+        "virtualMachineScaleSetsExtensions": "<virtualMachineScaleSetsExtensionsApiVersion>",
+        "virtualNetworks": "<virtualNetworksApiVersion>",
+        "workspaces": "<workspacesApiVersion>",
+        "workspacesDataSources": "<workspacesDataSourcesApiVersion>",
+        "workspacesSavedSearches": "<workspacesSavedSearchesApiVersion>",
+        "workspacesSavedSearchesSchedules": "<workspacesSavedSearchesSchedulesApiVersion>",
+        "workspacesSavedSearchesSchedulesActions": "<workspacesSavedSearchesSchedulesActionsApiVersion>",
+        "workspacesViews": "<workspacesViewsApiVersion>",
+        "roleAssignments": "<roleAssignments>",
+        "identities": "<identities>",
+        "keyVaults": "<keyVaults>",
+        "eventGrids": "<eventGrids>",
+        "automationAccounts": "<automationAccounts>"
+      }
+    },
+    "uniqueNameFix": {
+      "value": "<uniqueNameFix>"
+    },
+    "operationMode": {
+      "value": "<operationMode>"
+    },
+    "projectName": {
+      "value": "<projectName>"
+    },
+    "deploymentPrincipalObjectId": {
+      "value": "<deploymentPrincipalObjectId>"
+    },     
+    "bootstrapStorageAccount": {
+      "value": "<bootstrapStorageAccount>"
+    },
+    "bootstrapStorageAccountKey": {
+      "value": "<bootstrapStorageAccountKey>"
+    },
+    "bootstrapStorageAccountSas": {
+      "value": "<bootstrapStorageAccountSas>"
+    },
+    "bootstrapStorageAccountUrl": {
+      "value": "<bootstrapStorageAccountUrl>"
+    },
+    "adminUserName": {
+      "value": "mercator"
+    },
+    "adminPassword": {
+      "value": "Dummy2PassWord!"
+    },
+    "customImageUri": {
+      "value": "<customImageUri>"
+    }
+  }
+}

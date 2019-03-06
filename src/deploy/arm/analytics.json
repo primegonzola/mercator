@@ -1,0 +1,174 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "apiVersions": {
+            "type": "object"
+        },
+        "uniqueNameFix": {
+            "type": "string"
+        }
+    },
+    "variables": {
+        "contactName": "none",
+        "contactEmail": "none@none.com",
+        "apiVersions": "[parameters('apiVersions')]",
+        "uniqueNameFix": "[parameters('uniqueNameFix')]",
+        "workspace": "[concat('analytics-log-', variables('uniqueNameFix'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.OperationalInsights/workspaces",
+            "apiVersion": "[variables('apiVersions').workspaces]",
+            "name": "[variables('workspace')]",
+            "location": "[resourceGroup().location]",
+            "comments": "Log Analytics workspace",
+            "properties": {
+                "sku": {
+                    "name": "Free"
+                }
+            },
+            "resources": [
+                {
+                    "type": "dataSources",
+                    "apiVersion": "[variables('apiVersions').workspacesDataSources]",
+                    "name": "Linux",
+                    "dependsOn": [
+                        "[concat('Microsoft.OperationalInsights/workspaces/', variables('workspace'))]"
+                    ],
+                    "kind": "LinuxPerformanceObject",
+                    "properties": {
+                        "performanceCounters": [
+                            {
+                                "counterName": "% Used Inodes"
+                            },
+                            {
+                                "counterName": "Free Megabytes"
+                            },
+                            {
+                                "counterName": "% Used Space"
+                            },
+                            {
+                                "counterName": "Disk Transfers/sec"
+                            },
+                            {
+                                "counterName": "Disk Reads/sec"
+                            },
+                            {
+                                "counterName": "Disk Writes/sec"
+                            }
+                        ],
+                        "objectName": "Logical Disk",
+                        "instanceName": "*",
+                        "intervalSeconds": 10
+                    }
+                },
+                {
+                    "type": "dataSources",
+                    "apiVersion": "[variables('apiVersions').workspacesDataSources]",
+                    "name": "LinuxPerfCollection",
+                    "dependsOn": [
+                        "[concat('Microsoft.OperationalInsights/workspaces/', variables('workspace'))]"
+                    ],
+                    "kind": "LinuxPerformanceCollection",
+                    "properties": {
+                        "state": "Enabled"
+                    }
+                },
+                {
+                    "type": "dataSources",
+                    "apiVersion": "[variables('apiVersions').workspacesDataSources]",
+                    "name": "Syslog",
+                    "dependsOn": [
+                        "[concat('Microsoft.OperationalInsights/workspaces/', variables('workspace'))]"
+                    ],
+                    "kind": "LinuxSyslog",
+                    "properties": {
+                        "syslogName": "kern",
+                        "syslogSeverities": [
+                            {
+                                "severity": "emerg"
+                            },
+                            {
+                                "severity": "alert"
+                            },
+                            {
+                                "severity": "crit"
+                            },
+                            {
+                                "severity": "err"
+                            },
+                            {
+                                "severity": "warning"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "dataSources",
+                    "apiVersion": "[variables('apiVersions').workspacesDataSources]",
+                    "name": "SyslogHAProxyLocal0",
+                    "dependsOn": [
+                        "[concat('Microsoft.OperationalInsights/workspaces/', variables('workspace'))]"
+                    ],
+                    "kind": "LinuxSyslog",
+                    "properties": {
+                        "syslogName": "local0",
+                        "syslogSeverities": [
+                            {
+                                "severity": "emerg"
+                            },
+                            {
+                                "severity": "alert"
+                            },
+                            {
+                                "severity": "crit"
+                            },
+                            {
+                                "severity": "err"
+                            },
+                            {
+                                "severity": "warning"
+                            },
+                            {
+                                "severity": "notice"
+                            },
+                            {
+                                "severity": "info"
+                            },
+                            {
+                                "severity": "debug"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "dataSources",
+                    "apiVersion": "[variables('apiVersions').workspacesDataSources]",
+                    "name": "SyslogCollection",
+                    "dependsOn": [
+                        "[concat('Microsoft.OperationalInsights/workspaces/', variables('workspace'))]"
+                    ],
+                    "kind": "LinuxSyslogCollection",
+                    "properties": {
+                        "state": "Enabled"
+                    }
+                }
+            ]
+        }
+    ],
+    "outputs": {
+        "workspaceName": {
+            "value": "[variables('workspace')]",
+            "type": "string"
+        },
+        "workspaceId": {
+            "value": "[reference(concat('Microsoft.OperationalInsights/workspaces/', variables('workspace')), variables('apiVersions').workspaces).customerId]",
+            "type": "string"
+        },
+        "workspaceKey": {
+            "value": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces/', variables('workspace')), variables('apiVersions').workspaces).primarySharedKey]",
+            "type": "string"
+        }
+    }
+}

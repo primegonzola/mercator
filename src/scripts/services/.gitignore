@@ -1,0 +1,9 @@
+*/node_modules
+*.zip
+build/
+dependencies.bundle.js
+npm-debug.log
+package-lock.json
+*/lib
+*/dist
+*/doc

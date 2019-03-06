@@ -1,0 +1,49 @@
+{
+  "name": "mercator",
+  "description": "mercator",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./lib/index.js",
+  "types": "./typings/index",
+  "files": [
+    "./lib"
+  ],
+  "dependencies": {
+    "util": "^0.11.1",
+    "ms-rest": "^2.3.8",
+    "ms-rest-azure": "^2.5.9",
+    "azure-storage": "^2.10.2",
+    "request-promise": "^4.2.2",
+    "azure-arm-compute": "^9.1.0",
+    "azure-arm-storage": "^6.3.0",
+    "azure-keyvault": "^3.0.4",
+    "azure-arm-monitor": "^5.2.0",
+    "applicationinsights": "^1.0.8",
+    "node-webhooks": "^1.4.0",
+    "request": "^2.88.0",
+    "restler": "^3.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^10.12.18",
+    "@types/chai": "^4.1.7",
+    "@types/mocha": "^5.2.5",
+    "ts-loader": "^5.3.2",
+    "typescript": "^3.2.2",
+    "chai": "^4.2.0",
+    "mocha": "^5.2.0",
+    "jsdoc": "^3.5.5",
+    "webpack": "^4.28.3",
+    "webpack-cli": "^3.1.2",
+    "tslint": "^5.12.0",
+    "ts-node": "^7.0.1"
+  },
+  "scripts": {
+    "full": "npm install && npm run build && npm link",
+    "lint": "tslint --project .",
+    "transform": "tsc",
+    "test": "mocha -r ts-node/register tests/**/*.spec.ts",
+    "doc": "./node_modules/.bin/jsdoc ./lib -d ./doc",
+    "pack": "webpack --config webpack.config.js",
+    "build": "npm run lint && npm run test && npm run transform && npm run doc"
+  }
+}

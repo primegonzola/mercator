@@ -1,0 +1,187 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "apiVersions": {
+            "type": "object"
+        },
+        "uniqueNameFix": {
+            "type": "string"
+        },
+        "statusTargets": {
+            "type": "array",
+            "defaultValue": []
+        },
+        "statusTopicId": {
+            "type": "string"
+        },
+        "keyVaultUri": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "storageAccountId": {
+            "type": "string"
+        },
+        "debugMode": {
+            "type": "bool",
+            "defaultValue": false
+        },
+        "logLevel": {
+            "type": "int",
+            "defaultValue": 15
+        },
+        "applicationInsightsKey": {
+            "type": "securestring"
+        }
+    },
+    "variables": {
+        "apiVersions": "[parameters('apiVersions')]",
+        "uniqueNameFix": "[parameters('uniqueNameFix')]",
+        "functionAppName": "[concat('services-app-', variables('uniqueNameFix'))]",
+        "hostingPlanName": "[concat('services-asp-', variables('uniqueNameFix'))]",
+        "servicesStorageAccountName": "[concat('servicessa', variables('uniqueNameFix'))]",
+        "servicesStorageAccountId": "[resourceId(subscription().subscriptionId, resourceGroup().name,'Microsoft.Storage/storageAccounts', variables('servicesStorageAccountName'))]",
+        "debugMode": "[parameters('debugMode')]",
+        "logLevel": "[parameters('logLevel')]",
+        "statusTargets": "[string(parameters('statusTargets'))]",
+        "keyVaultUri": "[parameters('keyVaultUri')]",
+        "statusTopicId": "[parameters('statusTopicId')]",
+        "storageAccountId": "[parameters('storageAccountId')]",
+        "applicationInsightsKey": "[parameters('applicationInsightsKey')]",
+        "Contributor": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Web/serverfarms",
+            "name": "[variables('hostingPlanName')]",
+            "apiVersion": "[variables('apiVersions').serverFarms]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "name": "[variables('hostingPlanName')]",
+                "sku": "Dynamic",
+                "computeMode": "Dynamic"
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "[variables('apiVersions').storageAccounts]",
+            "name": "[variables('servicesStorageAccountName')]",
+            "location": "[resourceGroup().location]",
+            "kind": "Storage",
+            "sku": {
+                "name": "Standard_LRS",
+                "tier": "Standard"
+            },
+            "properties": {}
+        },
+        {
+            "name": "[variables('functionAppName')]",
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "[variables('apiVersions').sites]",
+            "location": "[resourceGroup().location]",
+            "kind": "functionapp",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "dependsOn": [
+                "[variables('servicesStorageAccountId')]",
+                "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]"
+            ],
+            "properties": {
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+                "cors": {
+                    "allowedOrigins": [
+                        "*"
+                    ]
+                },
+                "siteConfig": {
+                    "appSettings": [
+                        {
+                            "name": "AzureWebJobsDashboard",
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('servicesStorageAccountName'), ';AccountKey=', listKeys(variables('servicesStorageAccountId'), variables('apiVersions').storageAccounts).keys[0].value)]"
+                        },
+                        {
+                            "name": "AzureWebJobsStorage",
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('servicesStorageAccountName'), ';AccountKey=', listKeys(variables('servicesStorageAccountId'), variables('apiVersions').storageAccounts).keys[0].value)]"
+                        },
+                        {
+                            "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('servicesStorageAccountName'), ';AccountKey=', listKeys(variables('servicesStorageAccountId'), variables('apiVersions').storageAccounts).keys[0].value)]"
+                        },
+                        {
+                            "name": "WEBSITE_CONTENTSHARE",
+                            "value": "[toLower(variables('functionAppName'))]"
+                        },
+                        {
+                            "name": "FUNCTIONS_EXTENSION_VERSION",
+                            "value": "~1"
+                        },
+                        {
+                            "name": "WEBSITE_NODE_DEFAULT_VERSION",
+                            "value": "6.5.0"
+                        },
+                        {
+                            "name": "MERCATOR_DEBUG_MODE",
+                            "value": "[variables('debugMode')]"
+                        },
+                        {
+                            "name": "MERCATOR_LOG_LEVEL",
+                            "value": "[variables('logLevel')]"
+                        },
+                        {
+                            "name": "AZURE_SUBSCRIPTION_ID",
+                            "value": "[subscription().subscriptionId]"
+                        },
+                        {
+                            "name": "RESOURCE_GROUP_NAME",
+                            "value": "[resourceGroup().name]"
+                        },
+                        {
+                            "name": "KEY_VAULT_URI",
+                            "value": "[variables('keyVaultUri')]"
+                        },
+                        {
+                            "name": "STATUS_TOPIC_ID",
+                            "value": "[variables('statusTopicId')]"
+                        },
+                        {
+                            "name": "STORAGE_ACCOUNT_ID",
+                            "value": "[variables('storageAccountId')]"
+                        },
+                        {
+                            "name": "STATUS_TARGETS",
+                            "value": "[variables('statusTargets')]"
+                        },
+                        {
+                            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                            "value": "[variables('applicationInsightsKey')]"
+                        }
+                    ]
+                }
+            },
+            "resources": [
+                {
+                    "apiVersion": "2015-08-01",
+                    "name": "web",
+                    "type": "config",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/Sites', variables('functionAppName'))]"
+                    ],
+                    "properties": {
+                        "scmType": "LocalGit"
+                    }
+                }
+            ]
+        }
+    ],
+    "outputs": {
+        "servicesId": {
+            "value": "[resourceId('Microsoft.Web/Sites', variables('functionAppName'))]",
+            "type": "string"
+        },
+        "servicesPrincipalId": {
+            "value": "[reference(concat(resourceId('Microsoft.Web/sites', variables('functionAppName')),'/providers/Microsoft.ManagedIdentity/Identities/default'),'2015-08-31-PREVIEW').principalId]",
+            "type": "string"
+        }
+    }
+}

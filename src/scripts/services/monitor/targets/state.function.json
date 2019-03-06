@@ -1,0 +1,12 @@
+{
+  "bindings": [
+    {
+      "name": "data",
+      "type": "timerTrigger",
+      "direction": "in",
+      "schedule": "0 */1 * * * *"
+    }
+  ],
+  "disabled": false,
+  "scriptFile": "./dist/index.js"  
+}

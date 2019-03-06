@@ -1,0 +1,34 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "apiVersions": {
+            "type": "object"
+        },
+        "uniqueNameFix": {
+            "type": "string"
+        }
+    },
+    "variables": {
+        "apiVersions": "[parameters('apiVersions')]",
+        "uniqueNameFix": "[parameters('uniqueNameFix')]",
+        "name": "[concat('status-egt-', variables('uniqueNameFix'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.EventGrid/topics",
+            "apiVersion": "[variables('apiVersions').eventGrids]",
+            "name": "[variables('name')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "name": "[variables('name')]"
+            }
+        }
+    ],
+    "outputs": {
+        "statusTopicId": {
+            "value": "[resourceId('Microsoft.EventGrid/topics/', variables('name'))]",
+            "type": "string"
+        }
+    }
+}

@@ -1,0 +1,28 @@
+{
+    "data": {
+        "type": "VirtualMachineScaleSet",
+        "category": "rtti-api",
+        "name": "pkrvm5xnd8rwkbx",
+        "status": "UP",
+        "data": {
+            "ipAddress": "10.136.14.134"
+        }
+    },
+    "eventType": "mercator-status",
+    "subject": "/subscriptions/886b84e6-68e5-4a4d-8230-61235c4a2087/resourceGroups/ander-blue/providers/Microsoft.Compute/virtualMachineScaleSets/rtti-vmss-ovyikwj4",
+    "topic": "/subscriptions/886b84e6-68e5-4a4d-8230-61235c4a2087/resourceGroups/ander-blue/providers/Microsoft.EventGrid/topics/status-egt-ovyikwj4"
+}
+{
+    "data": {
+        "type": "VirtualMachineScaleSet",
+        "category": "rtti-api",
+        "name": "pkrvm5xnd8rwkbx",
+        "status": "UP",
+        "data": {
+            "ipAddress": "10.136.14.135"
+        }
+    },
+    "eventType": "mercator-status",
+    "subject": "/subscriptions/886b84e6-68e5-4a4d-8230-61235c4a2087/resourceGroups/ander-blue/providers/Microsoft.Compute/virtualMachineScaleSets/rtti-vmss-ovyikwj4",
+    "topic": "/subscriptions/886b84e6-68e5-4a4d-8230-61235c4a2087/resourceGroups/ander-blue/providers/Microsoft.EventGrid/topics/status-egt-ovyikwj4"
+}

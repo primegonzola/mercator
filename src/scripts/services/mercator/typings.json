@@ -1,0 +1,9 @@
+{
+    "name": "mercator",
+    "main":"./typings/index.d.ts",
+    "homepage":"",
+    "version":"1.0.0",
+    "globalDependencies": {
+      "node": "registry:dt/node#6.0.0+20160514165920"
+    }
+  }

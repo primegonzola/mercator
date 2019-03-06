@@ -1,0 +1,101 @@
+{
+    "variables": {
+        "client_id": "{{env `ARM_CLIENT_ID`}}",
+        "client_secret": "{{env `ARM_CLIENT_SECRET`}}",
+        "subscription_id": "{{env `ARM_SUBSCRIPTION_ID`}}",
+        "tenant_id": "{{env `ARM_TENANT_ID`}}",
+        "ssh_user": "{{env `ARM_SSH_USER`}}",
+        "ssh_pass": "{{env `ARM_SSH_PASS`}}",
+        "resource_group": "{{env `ARM_RESOURCE_GROUP`}}",
+        "location": "{{env `ARM_LOCATION`}}",
+        "vm_size": "{{env `ARM_VM_SIZE`}}",
+        "image_name": "{{env `ARM_IMAGE_NAME`}}",
+        "storage_account": "{{env `ARM_STORAGE_ACCOUNT`}}"
+    },
+    "builders": [
+        {
+            "type": "azure-arm",
+            "client_id": "{{user `client_id`}}",
+            "client_secret": "{{user `client_secret`}}",
+            "subscription_id": "{{user `subscription_id`}}",
+            "tenant_id": "{{user `tenant_id`}}",
+            "resource_group_name": "{{user `resource_group`}}",
+            "storage_account": "{{user `storage_account`}}",
+            "capture_container_name": "images",
+            "capture_name_prefix": "mercator",
+            "ssh_username": "{{user `ssh_user`}}",
+            "ssh_password": "{{user `ssh_pass`}}",
+            "location": "{{user `location`}}",
+            "vm_size": "{{user `vm_size`}}",
+            "os_type": "Linux",
+            "os_disk_size_gb": 32,
+            "image_publisher": "Canonical",
+            "image_offer": "UbuntuServer",
+            "image_sku": "18.04-LTS",
+            "image_version": "latest",
+            "ssh_pty": "true"
+        }
+    ],
+    "provisioners": [
+        {
+            "execute_command": "echo '{{user `ssh_pass`}}' | {{ .Vars }} sudo -S -E sh '{{ .Path }}'",
+            "inline": [
+                "apt-get -y update",
+                "apt-get -y upgrade",
+                "apt-get -y install jq",
+                "apt-get -y install curl",
+                "apt-get -y install unzip",
+                "apt-get -y install dos2unix",
+                "apt-get -y install openssl",
+                "apt-get -y install libpcre3",
+                "apt-get -y install procps",
+                "apt-get -y install perl",
+                "apt-get -y install openjdk-8-jdk",
+                "apt-get -y install maven",
+                "apt-get -y install postgresql",
+                "apt-get -y install postgresql-contrib"
+            ],
+            "inline_shebang": "/bin/sh -x",
+            "type": "shell",
+            "skip_clean": true
+        },
+        {
+            "execute_command": "echo '{{user `ssh_pass`}}' | {{ .Vars }} sudo -S -E sh '{{ .Path }}'",
+            "inline": [
+                "curl 'https://bintray.com/user/downloadSubjectPublicKey?username=bintray' | sudo apt-key add -",
+                "echo 'deb https://kong.bintray.com/kong-community-edition-deb precise main' | sudo tee -a /etc/apt/sources.list",
+                "apt-get -y update",
+                "apt-get -y install kong-community-edition"                       
+            ],
+            "inline_shebang": "/bin/sh -x",
+            "type": "shell",
+            "skip_clean": true
+        },
+        {
+            "execute_command": "echo '{{user `ssh_pass`}}' | {{ .Vars }} sudo -S -E sh '{{ .Path }}'",
+            "inline": [
+                "curl https://releases.hashicorp.com/consul/1.4.2/consul_1.4.2_linux_amd64.zip --output /tmp/consul.zip",
+                "unzip /tmp/consul.zip -d /usr/local/bin/"
+            ],
+            "inline_shebang": "/bin/sh -x",
+            "type": "shell",
+            "skip_clean": true
+        },
+        {
+            "execute_command": "echo '{{user `ssh_pass`}}' | {{ .Vars }} sudo -S -E sh '{{ .Path }}'",
+            "inline": [
+                "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"
+            ],
+            "inline_shebang": "/bin/sh -x",
+            "type": "shell",
+            "skip_clean": true
+        }
+    ],
+    "post-processors": [
+        {
+            "type": "manifest",
+            "output": "manifest.json",
+            "strip_path": false
+        }
+    ]
+}

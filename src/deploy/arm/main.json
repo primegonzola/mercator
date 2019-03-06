@@ -1,0 +1,465 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "apiVersions": {
+      "type": "object"
+    },
+    "uniqueNameFix": {
+      "type": "string"
+    },
+    "operationMode": {
+      "type": "string"
+    },
+    "projectName": {
+      "type": "string"
+    },
+    "bootstrapStorageAccount": {
+      "type": "securestring"
+    },
+    "bootstrapStorageAccountKey": {
+      "type": "securestring"
+    },
+    "bootstrapStorageAccountSas": {
+      "type": "securestring"
+    },
+    "bootstrapStorageAccountUrl": {
+      "type": "string"
+    },
+    "adminUserName": {
+      "type": "string"
+    },
+    "adminPassword": {
+      "type": "securestring"
+    },
+    "deploymentPrincipalObjectId": {
+      "type": "securestring"
+    },
+    "customImageUri": {
+      "type": "string"
+    }
+  },
+  "variables": {
+    "apiVersions": "[parameters('apiVersions')]",
+    "uniqueNameFix": "[parameters('uniqueNameFix')]",
+    "operationMode": "[parameters('operationMode')]",
+    "projectName": "[parameters('projectName')]",
+    "deploymentPrincipalObjectId": "[parameters('deploymentPrincipalObjectId')]",
+    "webHookUri": "none",
+    "keyVaultName": "[concat('vaultkv',variables('uniqueNameFix'))]",
+    "keyVaultId": "[resourceId('Microsoft.KeyVault/vaults/', variables('keyVaultName'))]",
+    "customImageUri": "[parameters('customImageUri')]",
+    "adminUserName": "[parameters('adminUserName')]",
+    "adminPassword": "[parameters('adminPassword')]",
+    "bootstrapStorageAccountName": "[parameters('bootstrapStorageAccount')]",
+    "bootstrapStorageAccountId": "[resourceId(subscription().subscriptionId, resourceGroup().name,'Microsoft.Storage/storageAccounts', variables('bootstrapStorageAccountName'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "[variables('apiVersions').deployments]",
+      "name": "analytics",
+      "dependsOn": [],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(uri(deployment().properties.templateLink.uri, 'analytics.json'), parameters('bootstrapStorageAccountSas'))]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "apiVersions": {
+            "value": "[variables('apiVersions')]"
+          },
+          "uniqueNameFix": {
+            "value": "[variables('uniqueNameFix')]"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "[variables('apiVersions').deployments]",
+      "name": "insights",
+      "dependsOn": [],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(uri(deployment().properties.templateLink.uri, 'insights.json'), parameters('bootstrapStorageAccountSas'))]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "apiVersions": {
+            "value": "[variables('apiVersions')]"
+          },
+          "uniqueNameFix": {
+            "value": "[variables('uniqueNameFix')]"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "[variables('apiVersions').deployments]",
+      "name": "storage",
+      "dependsOn": [],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(uri(deployment().properties.templateLink.uri, 'storage.json'), parameters('bootstrapStorageAccountSas'))]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "apiVersions": {
+            "value": "[variables('apiVersions')]"
+          },
+          "uniqueNameFix": {
+            "value": "[variables('uniqueNameFix')]"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "[variables('apiVersions').deployments]",
+      "name": "topics",
+      "dependsOn": [],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(uri(deployment().properties.templateLink.uri, 'topics.json'), parameters('bootstrapStorageAccountSas'))]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "apiVersions": {
+            "value": "[variables('apiVersions')]"
+          },
+          "uniqueNameFix": {
+            "value": "[variables('uniqueNameFix')]"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "[variables('apiVersions').deployments]",
+      "name": "vault",
+      "dependsOn": [],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(uri(deployment().properties.templateLink.uri, 'vault.json'), parameters('bootstrapStorageAccountSas'))]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "apiVersions": {
+            "value": "[variables('apiVersions')]"
+          },
+          "uniqueNameFix": {
+            "value": "[variables('uniqueNameFix')]"
+          },
+          "deploymentPrincipalObjectId": {
+            "value": "[variables('deploymentPrincipalObjectId')]"
+          },
+          "servicesPrincipalId": {
+            "value": "[reference('services').outputs.servicesPrincipalId.value]"
+          },
+          "storageAccountId": {
+            "value": "[reference('storage').outputs.storageAccountId.value]"
+          },
+          "webHookUri": {
+            "value": "[variables('webHookUri')]"
+          },
+          "apiVmssPrincipalId": {
+            "value": "[reference('api').outputs.vmssPrincipalId.value]"
+          },
+          "coredbVmssPrincipalId": {
+            "value": "[reference('coredb').outputs.vmssPrincipalId.value]"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "[variables('apiVersions').deployments]",
+      "name": "services",
+      "dependsOn": [],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(uri(deployment().properties.templateLink.uri, 'services.json'), parameters('bootstrapStorageAccountSas'))]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "apiVersions": {
+            "value": "[variables('apiVersions')]"
+          },
+          "uniqueNameFix": {
+            "value": "[variables('uniqueNameFix')]"
+          },
+          "statusTopicId": {
+            "value": "[reference('topics').outputs.statusTopicId.value]"
+          },
+          "storageAccountId": {
+            "value": "[reference('storage').outputs.storageAccountId.value]"
+          },
+          "applicationInsightsKey": {
+            "value": "[reference('insights').outputs.workspaceKey.value]"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "[variables('apiVersions').deployments]",
+      "name": "network",
+      "dependsOn": [],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(uri(deployment().properties.templateLink.uri, 'network.json'), parameters('bootstrapStorageAccountSas'))]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "apiVersions": {
+            "value": "[variables('apiVersions')]"
+          },
+          "uniqueNameFix": {
+            "value": "[variables('uniqueNameFix')]"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "[variables('apiVersions').deployments]",
+      "name": "jumpbox",
+      "dependsOn": [],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(uri(deployment().properties.templateLink.uri, 'jumpbox.json'), parameters('bootstrapStorageAccountSas'))]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "apiVersions": {
+            "value": "[variables('apiVersions')]"
+          },
+          "uniqueNameFix": {
+            "value": "[variables('uniqueNameFix')]"
+          },
+          "subnetId": {
+            "value": "[reference('network').outputs.jumpboxSubnetId.value]"
+          },
+          "adminUserName": {
+            "value": "[variables('adminUserName')]"
+          },
+          "adminPassword": {
+            "value": "[variables('adminPassword')]"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "[variables('apiVersions').deployments]",
+      "name": "api",
+      "dependsOn": [],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(uri(deployment().properties.templateLink.uri, 'vmss.json'), parameters('bootstrapStorageAccountSas'))]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "apiVersions": {
+            "value": "[variables('apiVersions')]"
+          },
+          "uniqueNameFix": {
+            "value": "[variables('uniqueNameFix')]"
+          },
+          "operationMode": {
+            "value": "[variables('operationMode')]"
+          },
+          "projectName": {
+            "value": "[variables('projectName')]"
+          },
+          "hostRole": {
+            "value": "api"
+          },
+          "subnetId": {
+            "value": "[reference('network').outputs.apiSubnetId.value]"
+          },
+          "adminUserName": {
+            "value": "[variables('adminUserName')]"
+          },
+          "adminPassword": {
+            "value": "[variables('adminPassword')]"
+          },
+          "bootstrapStorageAccountName": {
+            "value": "[parameters('bootstrapStorageAccount')]"
+          },
+          "bootstrapStorageAccountKey": {
+            "value": "[parameters('bootstrapStorageAccountKey')]"
+          },
+          "bootstrapStorageAccountSas": {
+            "value": "[parameters('bootstrapStorageAccountSas')]"
+          },
+          "omsWorkspaceId": {
+            "value": "[reference('analytics').outputs.workspaceId.value]"
+          },
+          "omsWorkspaceKey": {
+            "value": "[reference('analytics').outputs.workspaceKey.value]"
+          },
+          "statusTopicId": {
+            "value": "[reference('topics').outputs.statusTopicId.value]"
+          },
+          "storageAccountId": {
+            "value": "[reference('storage').outputs.storageAccountId.value]"
+          },
+          "imageUri": {
+            "value": "[variables('customImageUri')]"
+          },
+          "keyVaultId": {
+            "value": "[variables('keyVaultId')]"
+          },
+          "healthPath": {
+            "value": "/"
+          },
+          "healthPort": {
+            "value": 8001
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "[variables('apiVersions').deployments]",
+      "name": "coredb",
+      "dependsOn": [],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(uri(deployment().properties.templateLink.uri, 'vmss.json'), parameters('bootstrapStorageAccountSas'))]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "apiVersions": {
+            "value": "[variables('apiVersions')]"
+          },
+          "uniqueNameFix": {
+            "value": "[variables('uniqueNameFix')]"
+          },
+          "operationMode": {
+            "value": "[variables('operationMode')]"
+          },
+          "projectName": {
+            "value": "[variables('projectName')]"
+          },
+          "hostRole": {
+            "value": "coredb"
+          },
+          "subnetId": {
+            "value": "[reference('network').outputs.coredbSubnetId.value]"
+          },
+          "adminUserName": {
+            "value": "[variables('adminUserName')]"
+          },
+          "adminPassword": {
+            "value": "[variables('adminPassword')]"
+          },
+          "bootstrapStorageAccountName": {
+            "value": "[parameters('bootstrapStorageAccount')]"
+          },
+          "bootstrapStorageAccountKey": {
+            "value": "[parameters('bootstrapStorageAccountKey')]"
+          },
+          "bootstrapStorageAccountSas": {
+            "value": "[parameters('bootstrapStorageAccountSas')]"
+          },
+          "omsWorkspaceId": {
+            "value": "[reference('analytics').outputs.workspaceId.value]"
+          },
+          "omsWorkspaceKey": {
+            "value": "[reference('analytics').outputs.workspaceKey.value]"
+          },
+          "statusTopicId": {
+            "value": "[reference('topics').outputs.statusTopicId.value]"
+          },
+          "storageAccountId": {
+            "value": "[reference('storage').outputs.storageAccountId.value]"
+          },
+          "imageUri": {
+            "value": "[variables('customImageUri')]"
+          },
+          "keyVaultId": {
+            "value": "[variables('keyVaultId')]"
+          },
+          "healthPath": {
+            "value": "/health"
+          },
+          "healthPort": {
+            "value": 8080
+          }
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "servicesId": {
+      "value": "[reference('services').outputs.servicesId.value]",
+      "type": "string"
+    },
+    "servicesPrincipalId": {
+      "value": "[reference('services').outputs.servicesPrincipalId.value]",
+      "type": "string"
+    },    
+    "storageAccountId": {
+      "value": "[reference('storage').outputs.storageAccountId.value]",
+      "type": "string"
+    },
+    "statusTopicId": {
+      "value": "[reference('topics').outputs.statusTopicId.value]",
+      "type": "string"
+    },
+    "keyVaultId": {
+      "type": "string",
+      "value": "[variables('keyVaultId')]"
+    },
+    "keyVaultUri": {
+      "value": "[reference('vault').outputs.keyVaultUri.value]",
+      "type": "string"
+    },
+    "apiVmssId": {
+      "value": "[reference('api').outputs.vmssId.value]",
+      "type": "string"
+    },
+    "apiVmssPrefix": {
+      "value": "[reference('api').outputs.vmssPrefix.value]",
+      "type": "string"
+    },
+    "apiVmssPrincipalId": {
+      "value": "[reference('api').outputs.vmssPrincipalId.value]",
+      "type": "string"
+    },
+    "apiVmssAutoScaleId": {
+      "value": "[reference('api').outputs.vmssAutoScaleId.value]",
+      "type": "string"
+    },
+    "coredbVmssId": {
+      "value": "[reference('coredb').outputs.vmssId.value]",
+      "type": "string"
+    },
+    "coredbVmssPrefix": {
+      "value": "[reference('coredb').outputs.vmssPrefix.value]",
+      "type": "string"
+    },
+    "coredbVmssPrincipalId": {
+      "value": "[reference('coredb').outputs.vmssPrincipalId.value]",
+      "type": "string"
+    },
+    "coredbVmssAutoScaleId": {
+      "value": "[reference('coredb').outputs.vmssAutoScaleId.value]",
+      "type": "string"
+    }
+  }
+}

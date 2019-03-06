@@ -1,0 +1,137 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "apiVersions": {
+            "type": "object"
+        },
+        "uniqueNameFix": {
+            "type": "string"
+        },
+        "deploymentPrincipalObjectId": {
+            "type": "securestring"
+        },
+        "servicesPrincipalId": {
+            "type": "securestring"
+        },
+        "storageAccountId": {
+            "type": "securestring"
+        },
+        "webHookUri": {
+            "type": "securestring",
+            "defaultValue": "none"
+        },
+        "apiVmssPrincipalId": {
+            "type": "securestring"
+        },
+        "coredbVmssPrincipalId": {
+            "type": "securestring"
+        }
+    },
+    "variables": {
+        "apiVersions": "[parameters('apiVersions')]",
+        "uniqueNameFix": "[parameters('uniqueNameFix')]",
+        "name": "[concat('vaultkv',variables('uniqueNameFix'))]",
+        "deploymentPrincipalObjectId": "[parameters('deploymentPrincipalObjectId')]",
+        "servicesPrincipalId": "[parameters('servicesPrincipalId')]",
+        "apiVmssPrincipalId": "[parameters('apiVmssPrincipalId')]",
+        "coredbVmssPrincipalId": "[parameters('coredbVmssPrincipalId')]",
+        "storageAccountId": "[parameters('storageAccountId')]",
+        "webHookUri": "[parameters('webHookUri')]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.KeyVault/vaults",
+            "apiVersion": "[variables('apiVersions').keyVaults]",
+            "name": "[variables('name')]",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "displayName": "KeyVault"
+            },
+            "properties": {
+                "enabledForDeployment": false,
+                "enabledForTemplateDeployment": false,
+                "enabledForVolumeEncryption": false,
+                "tenantId": "[subscription().tenantId]",
+                "accessPolicies": [
+                    {
+                        "tenantId": "[subscription().tenantId]",
+                        "objectId": "[variables('deploymentPrincipalObjectId')]",
+                        "permissions": {
+                            "secrets": [
+                                "set"
+                            ]
+                        }
+                    },
+                    {
+                        "tenantId": "[subscription().tenantId]",
+                        "objectId": "[variables('servicesPrincipalId')]",
+                        "permissions": {
+                            "secrets": [
+                                "get"
+                            ]
+                        }
+                    },
+                    {
+                        "tenantId": "[subscription().tenantId]",
+                        "objectId": "[variables('apiVmssPrincipalId')]",
+                        "permissions": {
+                            "secrets": [
+                                "get"
+                            ]
+                        }
+                    },
+                    {
+                        "tenantId": "[subscription().tenantId]",
+                        "objectId": "[variables('coredbVmssPrincipalId')]",
+                        "permissions": {
+                            "secrets": [
+                                "get"
+                            ]
+                        }
+                    }
+                ],
+                "sku": {
+                    "name": "standard",
+                    "family": "A"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "apiVersion": "[variables('apiVersions').keyVaults]",
+            "name": "[concat(variables('name'), '/', 'StorageAccountKey')]",
+            "properties": {
+                "value": "[listKeys(variables('storageAccountId'), variables('apiVersions').storageAccounts).keys[0].value]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.KeyVault/vaults/', variables('name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "apiVersion": "[variables('apiVersions').keyVaults]",
+            "name": "[concat(variables('name'), '/', 'WebHookUri')]",
+            "properties": {
+                "value": "[variables('webHookUri')]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.KeyVault/vaults/', variables('name'))]"
+            ]
+        }
+    ],
+    "outputs": {
+        "keyVaultId": {
+            "value": "[resourceId('Microsoft.KeyVault/vaults', variables('name'))]",
+            "type": "string"
+        },
+        "keyVaultName": {
+            "value": "[variables('name')]",
+            "type": "string"
+        },
+        "keyVaultUri": {
+            "value": "[concat('https://', variables('name'), '.vault.azure.net')]",
+            "type": "string"
+        }
+    }
+}
