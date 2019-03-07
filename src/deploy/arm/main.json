@@ -262,6 +262,57 @@
     {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "[variables('apiVersions').deployments]",
+      "name": "consul",
+      "dependsOn": [],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(uri(deployment().properties.templateLink.uri, 'consul.json'), parameters('bootstrapStorageAccountSas'))]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "apiVersions": {
+            "value": "[variables('apiVersions')]"
+          },
+          "uniqueNameFix": {
+            "value": "[variables('uniqueNameFix')]"
+          },
+          "operationMode": {
+            "value": "[variables('operationMode')]"
+          },
+          "projectName": {
+            "value": "[variables('projectName')]"
+          },
+          "subnetId": {
+            "value": "[reference('network').outputs.consulSubnetId.value]"
+          },
+          "adminUserName": {
+            "value": "[variables('adminUserName')]"
+          },
+          "adminPassword": {
+            "value": "[variables('adminPassword')]"
+          },
+          "bootstrapStorageAccountName": {
+            "value": "[parameters('bootstrapStorageAccount')]"
+          },
+          "bootstrapStorageAccountKey": {
+            "value": "[parameters('bootstrapStorageAccountKey')]"
+          },
+          "bootstrapStorageAccountSas": {
+            "value": "[parameters('bootstrapStorageAccountSas')]"
+          },
+          "omsWorkspaceId": {
+            "value": "[reference('analytics').outputs.workspaceId.value]"
+          },
+          "omsWorkspaceKey": {
+            "value": "[reference('analytics').outputs.workspaceKey.value]"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "[variables('apiVersions').deployments]",
       "name": "api",
       "dependsOn": [],
       "properties": {

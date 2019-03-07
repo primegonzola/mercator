@@ -100,6 +100,7 @@
         "apiVersions": "[parameters('apiVersions')]",
         "uniqueNameFix": "[parameters('uniqueNameFix')]",
         "hostRole": "[parameters('hostRole')]",
+        "ipName": "[concat(variables('hostRole'), '-ip-', variables('uniqueNameFix'))]",
         "nicName": "[concat(variables('hostRole'), '-nic-', variables('uniqueNameFix'))]",
         "nsgName": "[concat(variables('hostRole'), '-nsg-', variables('uniqueNameFix'))]",
         "lbName": "[concat(variables('hostRole'), '-lb-', variables('uniqueNameFix'))]",
@@ -145,6 +146,22 @@
             }
         },
         {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "[variables('apiVersions').publicIPAddresses]",
+            "name": "[variables('ipName')]",
+            "location": "[resourceGroup().location]",
+            "condition": "[parameters('loadbalanced')]",
+            "sku": {
+                "name": "Basic"
+            },
+            "properties": {
+                "publicIPAllocationMethod": "Static",
+                "dnsSettings": {
+                    "domainNameLabel": "[variables('dnsName')]"
+                }
+            }
+        },
+        {
             "type": "Microsoft.Network/loadBalancers",
             "apiVersion": "[variables('apiVersions').loadBalancers]",
             "name": "[variables('lbName')]",
@@ -153,14 +170,16 @@
             "sku": {
                 "name": "Basic"
             },
-            "dependsOn": [],
+            "dependsOn": [
+                "[variables('ipName')]"
+            ],
             "properties": {
                 "frontendIPConfigurations": [
                     {
                         "name": "LoadBalancerFrontEnd",
                         "properties": {
-                            "subnet": {
-                                "id": "[parameters('subnetId')]"
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('ipName'))]"
                             }
                         }
                     }
@@ -433,6 +452,14 @@
         }
     ],
     "outputs": {
+        "ipAddress": {
+            "value": "[if(bool(parameters('loadbalanced')), reference(variables('ipName')).ipAddress, '')]",
+            "type": "string"
+        },
+        "fqdn": {
+            "value": "[if(bool(parameters('loadbalanced')), reference(variables('ipName')).dnsSettings.fqdn, '')]",
+            "type": "string"
+        },
         "vmssId": {
             "value": "[resourceId('Microsoft.Compute/virtualMachineScaleSets/', variables('vmssName'))]",
             "type": "string"

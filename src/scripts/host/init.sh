@@ -26,9 +26,3 @@ if [[ "${HOST_ROLE}" == "coredb" ]]; then
     echo "init coredb"
     . ${ROOT_DIR}/host/init-coredb.sh
 fi
-# check if running consul host
-if [[ "${HOST_ROLE}" == "consul" ]]; then
-    # init consul
-    echo "init consul"
-    # . ${ROOT_DIR}/host/init-consul.sh
-fi

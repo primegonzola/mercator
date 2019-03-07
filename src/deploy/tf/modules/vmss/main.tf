@@ -78,22 +78,6 @@ variable "health_port" {
   default = "80"
 }
 
-
-# host
-resource "random_string" "fqdn" {
-  length  = 6
-  special = false
-  upper   = false
-  number  = false
-}
-resource "azurerm_public_ip" "host" {
-  name                            = "${var.host_role}-ip-${var.unique}"
-  resource_group_name             = "${var.resource_group}"
-  location                        = "${var.location}"
-  public_ip_address_allocation    = "static"
-  domain_name_label               = "${random_string.fqdn.result}"
-  sku                             = "Standard"  
-}
 resource "azurerm_lb" "host" {
   name                            = "${var.host_role}-lb-${var.unique}"
   resource_group_name             = "${var.resource_group}"
@@ -101,8 +85,8 @@ resource "azurerm_lb" "host" {
   sku                             = "Standard"
 
   frontend_ip_configuration {
-    name                  = "PublicIPAddress"    
-    public_ip_address_id  = "${azurerm_public_ip.host.id}"
+    name        = "PublicIPAddress"    
+    subnet_id   = "${var.subnet_id}"
  }
 }
 resource "azurerm_lb_backend_address_pool" "host" {
@@ -160,10 +144,9 @@ resource "azurerm_virtual_machine_scale_set" "host" {
   resource_group_name             = "${var.resource_group}"
   location                        = "${var.location}"
   upgrade_policy_mode             = "Automatic",
-  zones                           = [ "1", "2" , "3"]
 
   sku {
-      name                = "Standard_E4s_v3"
+      name                = "Standard_F2"
       tier                = "Standard"
       capacity            = 0
   }

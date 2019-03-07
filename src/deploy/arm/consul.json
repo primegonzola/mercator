@@ -1,0 +1,174 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "apiVersions": {
+            "type": "object"
+        },
+        "uniqueNameFix": {
+            "type": "string"
+        },
+        "operationMode": {
+            "type": "string"
+        },
+        "projectName": {
+            "type": "string"
+        },
+        "subnetId": {
+            "type": "string"
+        },
+        "adminUserName": {
+            "type": "string"
+        },
+        "adminPassword": {
+            "type": "securestring"
+        },
+        "bootstrapStorageAccountName": {
+            "type": "string"
+        },
+        "bootstrapStorageAccountKey": {
+            "type": "securestring"
+        },
+        "bootstrapStorageAccountSas": {
+            "type": "securestring"
+        },
+        "omsWorkspaceId": {
+            "type": "string"
+        },
+        "omsWorkspaceKey": {
+            "type": "string"
+        },
+        "vmSize": {
+            "type": "string",
+            "defaultValue": "Standard_F2"
+        },
+        "vmCount": {
+            "type": "int",
+            "defaultValue": 3,
+            "maxValue": 3
+        },
+        "vmCountMax": {
+            "type": "int",
+            "defaultValue": 3,
+            "maxValue": 3
+        }
+    },
+    "variables": {
+        "projectName": "[parameters('projectName')]",
+        "apiVersions": "[parameters('apiVersions')]",
+        "uniqueNameFix": "[parameters('uniqueNameFix')]",
+        "nicName": "[concat('consul-nic-', variables('uniqueNameFix'))]",
+        "vmssName": "[concat('consul-vmss-nlb-', variables('uniqueNameFix'))]",
+        "vmssId": "[resourceId('Microsoft.Compute/virtualMachineScaleSets', variables('vmssName'))]",
+        "vmssPrefix": "consul-vm-",
+        "ipConfigName": "[concat('consul-vmss-ipconfig', variables('uniqueNameFix'))]",
+        "singleQuote": "'"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Compute/virtualMachineScaleSets",
+            "apiVersion": "[variables('apiVersions').virtualMachineScaleSets]",
+            "name": "[variables('vmssName')]",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "[parameters('vmSize')]",
+                "capacity": "[parameters('vmCount')]"
+            },
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "dependsOn": [],
+            "properties": {
+                "overprovision": false,
+                "upgradePolicy": {
+                    "mode": "Automatic"
+                },
+                "virtualMachineProfile": {
+                    "storageProfile": {
+                        "imageReference": {
+                            "publisher": "Canonical",
+                            "offer": "UbuntuServer",
+                            "sku": "18.04-LTS",
+                            "version": "latest"
+                        },
+                        "osDisk": {
+                            "caching": "ReadWrite",
+                            "createOption": "FromImage"
+                        }
+                    },
+                    "osProfile": {
+                        "computerNamePrefix": "[variables('vmssPrefix')]",
+                        "adminUsername": "[parameters('adminUsername')]",
+                        "adminPassword": "[parameters('adminPassword')]"
+                    },
+                    "networkProfile": {
+                        "networkInterfaceConfigurations": [
+                            {
+                                "name": "[variables('nicName')]",
+                                "properties": {
+                                    "primary": true,
+                                    "ipConfigurations": [
+                                        {
+                                            "name": "[variables('ipConfigName')]",
+                                            "properties": {
+                                                "subnet": {
+                                                    "id": "[parameters('subnetId')]"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    "extensionProfile": {
+                        "extensions": [
+                            {
+                                "name": "OMSExtension",
+                                "location": "[resourceGroup().location]",
+                                "properties": {
+                                    "publisher": "Microsoft.EnterpriseCloud.Monitoring",
+                                    "type": "OmsAgentForLinux",
+                                    "typeHandlerVersion": "1.7",
+                                    "settings": {
+                                        "workspaceId": "[parameters('omsWorkspaceId')]"
+                                    },
+                                    "protectedSettings": {
+                                        "workspaceKey": "[parameters('omsWorkspaceKey')]"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "bootstrapcmd",
+                                "properties": {
+                                    "publisher": "Microsoft.Azure.Extensions",
+                                    "type": "CustomScript",
+                                    "typeHandlerVersion": "2.0",
+                                    "autoUpgradeMinorVersion": true,
+                                    "settings": {
+                                        "fileUris": [
+                                            "[concat(uri(deployment().properties.templateLink.uri, 'consul-init.sh'), parameters('bootstrapStorageAccountSas'))]"
+                                        ]
+                                    },
+                                    "protectedSettings": {
+                                        "commandToExecute": "[concat('./consul-init.sh',' ',variables('singleQuote'), variables('projectName'),variables('singleQuote'))]"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "vmssId": {
+            "value": "[resourceId('Microsoft.Compute/virtualMachineScaleSets/', variables('vmssName'))]",
+            "type": "string"
+        },
+        "vmssPrincipalId": {
+            "type": "string",
+            "value": "[reference(concat(resourceId('Microsoft.Compute/virtualMachineScaleSets/', variables('vmssName')),'/providers/Microsoft.ManagedIdentity/Identities/default'),variables('apiVersions').identities).principalId]"
+        }
+    }
+}

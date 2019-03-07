@@ -236,23 +236,29 @@ resource "azurerm_virtual_network" "network" {
 }
 # create host subnet
 resource "azurerm_subnet" "api" {
-  name                        = "host-sn-${var.unique}"
+  name                        = "api-sn-${var.unique}"
   resource_group_name         = "${var.resource_group}"
   virtual_network_name        = "${azurerm_virtual_network.network.name}"
   address_prefix              = "10.0.0.0/24"
 }
 resource "azurerm_subnet" "coredb" {
-  name                        = "host-sn-${var.unique}"
+  name                        = "coredb-sn-${var.unique}"
   resource_group_name         = "${var.resource_group}"
   virtual_network_name        = "${azurerm_virtual_network.network.name}"
   address_prefix              = "10.0.1.0/24"
+}
+resource "azurerm_subnet" "consul" {
+  name                        = "consul-sn-${var.unique}"
+  resource_group_name         = "${var.resource_group}"
+  virtual_network_name        = "${azurerm_virtual_network.network.name}"
+  address_prefix              = "10.0.2.0/24"
 }
 # create jumpbox subnet
 resource "azurerm_subnet" "jumpbox" {
   name                        = "jumpbox-sn-${var.unique}"
   resource_group_name         = "${var.resource_group}"
   virtual_network_name        = "${azurerm_virtual_network.network.name}"
-  address_prefix              = "10.0.2.0/24"
+  address_prefix              = "10.0.3.0/24"
 }
 
 module "jumpbox" {
@@ -328,42 +334,25 @@ module "coredb" {
   health_port               = "8080"  
 }
 
-# # role assignments
-# resource "azurerm_role_assignment" "services_principal_id_subscription_id" {
-#   role_definition_name = "Contributor"
-#   principal_id         = "${azurerm_function_app.services.identity.0.principal_id}"
-#   scope                = "${data.azurerm_subscription.current.id}"
-# }
-
-# resource "azurerm_role_assignment" "api_vmss_principal_id_status_topic_id" {
-#   role_definition_name = "Contributor"
-#   principal_id         = "${module.api.vmss_principal_id}"
-#   scope                = "${azurerm_eventgrid_topic.status.id}"
-# }
-
-# resource "azurerm_role_assignment" "api_vmss_principal_id_key_vault_id" {
-#   role_definition_name = "Contributor"
-#   principal_id         = "${module.api.vmss_principal_id}"
-#   scope                = "${azurerm_key_vault.main.id}"
-# }
-
-# resource "azurerm_role_assignment" "api_vmss_principal_id_storage_account_id" {
-#   role_definition_name = "Contributor"
-#   principal_id         = "${module.api.vmss_principal_id}"
-#   scope                = "${azurerm_storage_account.storage.id}"
-# }
-
-# resource "azurerm_role_assignment" "services_principal_id_api_vmss_id" {
-#   role_definition_name = "Contributor"
-#   principal_id         = "${azurerm_function_app.services.identity.0.principal_id}"
-#   scope                = "${module.api.vmss_id}"
-# }
-
-# resource "azurerm_role_assignment" "services_principal_id_api_vmss_autoscale_id" {
-#   role_definition_name = "Contributor"
-#   principal_id         = "${azurerm_function_app.services.identity.0.principal_id}"
-#   scope                = "${module.api.vmss_autoscale_id}"
-# }
+module "consul" {
+  source                    = "modules/consul"
+  version                   = "1.0.0"
+  unique                    = "${var.unique}"
+  project_name              = "${var.project_name}"
+  resource_group            = "${azurerm_resource_group.main.name}"
+  location                  = "${azurerm_resource_group.main.location}"
+  subscription_id           = "${var.subscription_id}"
+  tenant_id                 = "${var.tenant_id}"
+  client_id                 = "${var.client_id}"
+  client_secret             = "${var.client_secret}"
+  boot_storage_account_uri  = "${var.boot_storage_account_uri}"
+  boot_storage_account_name = "${var.boot_storage_account_name}"
+  boot_storage_account_key  = "${var.boot_storage_account_key}"
+  boot_storage_account_sas  = "${var.boot_storage_account_sas}"
+  subnet_id                 = "${azurerm_subnet.consul.id}"
+  analytics_workspace_id    = "${azurerm_log_analytics_workspace.analytics.workspace_id}" 
+  analytics_workspace_key   = "${azurerm_log_analytics_workspace.analytics.primary_shared_key}"
+}
 
 output "services_id" {
   value = "${azurerm_function_app.services.id}"

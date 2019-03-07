@@ -16,9 +16,11 @@
         "addressPrefix": "10.0.0.0/16",
         "apiSubnetPrefix": "10.0.0.0/24",
         "coredbSubnetPrefix": "10.0.1.0/24",
-        "jumpboxSubnetPrefix": "10.0.2.0/24",
+        "consulSubnetPrefix": "10.0.2.0/24",
+        "jumpboxSubnetPrefix": "10.0.3.0/24",
         "apiSubnet": "[concat('api-sn-',variables('uniqueNameFix'))]",
         "coredbSubnet": "[concat('coredb-sn-',variables('uniqueNameFix'))]",
+        "consulSubnet": "[concat('consul-sn-',variables('uniqueNameFix'))]",
         "jumpboxSubnet": "[concat('jumpbox-sn-',variables('uniqueNameFix'))]"
     },
     "resources": [
@@ -48,6 +50,12 @@
                         }
                     },
                     {
+                        "name": "[variables('consulSubnet')]",
+                        "properties": {
+                            "addressPrefix": "[variables('consulSubnetPrefix')]"
+                        }
+                    },
+                    {
                         "name": "[variables('jumpboxSubnet')]",
                         "properties": {
                             "addressPrefix": "[variables('jumpboxSubnetPrefix')]"
@@ -64,6 +72,10 @@
         },
         "coredbSubnetId": {
             "value": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetwork'), variables('coredbSubnet'))]",
+            "type": "string"
+        },
+        "consulSubnetId": {
+            "value": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetwork'), variables('consulSubnet'))]",
             "type": "string"
         },
         "jumpboxSubnetId": {
