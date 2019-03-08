@@ -37,6 +37,15 @@
     },
     "customImageUri": {
       "type": "string"
+    },
+    "consulTenantId": {
+      "type": "securestring"
+    },
+    "consulClientId": {
+      "type": "securestring"
+    },
+    "consulClientKey": {
+      "type": "securestring"
     }
   },
   "variables": {
@@ -52,7 +61,10 @@
     "adminUserName": "[parameters('adminUserName')]",
     "adminPassword": "[parameters('adminPassword')]",
     "bootstrapStorageAccountName": "[parameters('bootstrapStorageAccount')]",
-    "bootstrapStorageAccountId": "[resourceId(subscription().subscriptionId, resourceGroup().name,'Microsoft.Storage/storageAccounts', variables('bootstrapStorageAccountName'))]"
+    "bootstrapStorageAccountId": "[resourceId(subscription().subscriptionId, resourceGroup().name,'Microsoft.Storage/storageAccounts', variables('bootstrapStorageAccountName'))]",
+    "consulTenantId": "[parameters('consulTenantId')]",
+    "consulClientId": "[parameters('consulClientId')]",
+    "consulClientKey": "[parameters('consulClientKey')]"
   },
   "resources": [
     {
@@ -306,6 +318,15 @@
           },
           "omsWorkspaceKey": {
             "value": "[reference('analytics').outputs.workspaceKey.value]"
+          },
+          "consulTenantId": {
+            "value": "[variables('consulTenantId')]"
+          },
+          "consulClientId": {
+            "value": "[variables('consulClientId')]"
+          },
+          "consulClientKey": {
+            "value": "[variables('consulClientKey')]"
           }
         }
       }
@@ -478,6 +499,10 @@
     },
     "keyVaultUri": {
       "value": "[reference('vault').outputs.keyVaultUri.value]",
+      "type": "string"
+    },
+    "consulVmssId": {
+      "value": "[reference('consul').outputs.vmssId.value]",
       "type": "string"
     },
     "apiVmssId": {

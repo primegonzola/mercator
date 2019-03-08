@@ -67,6 +67,15 @@
     },
     "customImageUri": {
       "value": "<customImageUri>"
+    },
+    "consulTenantId": {
+      "value": "<consulTenantId>"
+    },
+    "consulClientId": {
+      "value": "<consulClientId>"
+    },
+    "consulClientKey": {
+      "value": "<consulClientKey>"
     }
   }
 }

@@ -86,6 +86,18 @@ wait_all_processes ${ACTIVE_PROCESSES[@]}
 display_progress "Builds are completed"
 ACTIVE_PROCESSES=()
 
+# create the consul principal
+# display_progress "Creating consul principal"
+# CONSUL_PRINCIPAL_DATA=$(az ad sp create-for-rbac)
+# CONSUL_CLIENT_ID=$(echo "${CONSUL_PRINCIPAL_DATA}" | jq -r '.appId')
+# CONSUL_CLIENT_KEY=$(echo "${CONSUL_PRINCIPAL_DATA}" | jq -r '.password')
+# CONSUL_TENANT_ID=$(echo "${CONSUL_PRINCIPAL_DATA}" | jq -r '.tenant')
+
+# HACK: currently we use the deployment credentials as the consul one
+CONSUL_TENANT_ID=${TENANT_ID}
+CONSUL_CLIENT_ID=${SERVICE_PRINCIPAL_ID}
+CONSUL_CLIENT_KEY=${SERVICE_PRINCIPAL_KEY}
+
 # main deployment
 if [[ "${DEPLOYMENT_MODEL}" == "arm" ]]; then
     # enter 
@@ -105,6 +117,9 @@ if [[ "${DEPLOYMENT_MODEL}" == "arm" ]]; then
     -e "s|<bootstrapStorageAccountSas>|${ESCAPED_BOOTSTRAP_STORAGE_SAS_TOKEN}|" \
     -e "s|<bootstrapStorageAccountUrl>|${BLOB_BASE_URL}|" \
     -e "s|<customImageUri>|${CUSTOM_IMAGE_URI}|" \
+    -e "s|<consulTenantId>|${CONSUL_TENANT_ID}|" \
+    -e "s|<consulClientId>|${CONSUL_CLIENT_ID}|" \
+    -e "s|<consulClientKey>|${CONSUL_CLIENT_KEY}|" \
     main.parameters.json
 
     # create the main deployment either in background or not
@@ -131,6 +146,10 @@ if [[ "${DEPLOYMENT_MODEL}" == "arm" ]]; then
     COREDB_VMSS_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.properties.outputs.coredbVmssId.value')
     COREDB_VMSS_PRINCIPAL_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.properties.outputs.coredbVmssPrincipalId.value')
     COREDB_VMSS_AUTOSCALE_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.properties.outputs.coredbVmssAutoScaleId.value')
+
+    # consul vmss
+    CONSUL_VMSS_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.properties.outputs.consulVmssId.value')
+
     # leave
     popd
 fi
@@ -156,6 +175,9 @@ if [[ "${DEPLOYMENT_MODEL}" == "tf" ]]; then
     -e "s|<boot-storage-account-key>|${BOOTSTRAP_STORAGE_ACCOUNT_KEY}|" \
     -e "s|<boot-storage-account-sas>|${ESCAPED_BOOTSTRAP_STORAGE_SAS_TOKEN}|" \
     -e "s|<custom-image-uri>|${CUSTOM_IMAGE_URI}|" \
+    -e "s|<consul-tenant-id>|${CONSUL_TENANT_ID}|" \
+    -e "s|<consul-client-id>|${CONSUL_CLIENT_ID}|" \
+    -e "s|<consul-client-key>|${CONSUL_CLIENT_KEY}|" \
     input.parameters.tfvars > input.tfvars 
     # initialize terraform
     terraform init
@@ -180,6 +202,8 @@ if [[ "${DEPLOYMENT_MODEL}" == "tf" ]]; then
     COREDB_VMSS_PRINCIPAL_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.coredb_vmss_principal_id.value')
     COREDB_VMSS_AUTOSCALE_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.coredb_vmss_autoscale_id.value')
 
+    CONSUL_VMSS_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.coredb_consul_id.value')
+
     # leave
     popd
 fi
@@ -199,6 +223,8 @@ az role assignment create --assignee-object-id ${COREDB_VMSS_PRINCIPAL_ID} --sco
 
 az role assignment create --assignee-object-id ${SERVICES_PRINCIPAL_ID} --scope ${API_VMSS_ID} --role Contributor
 az role assignment create --assignee-object-id ${SERVICES_PRINCIPAL_ID} --scope ${API_VMSS_AUTOSCALE_ID} --role Contributor
+
+az role assignment create --assignee-object-id ${CONSUL_CLIENT_ID} --scope ${CONSUL_VMSS_ID} --role Reader
 
 # scaling host
 display_progress "Scaling api"

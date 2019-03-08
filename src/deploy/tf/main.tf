@@ -41,6 +41,16 @@ variable "custom_image_uri" {
   type = "string"
 }
 
+variable "consul_tenant_id" {
+  type = "string"
+}
+variable "consul_client_id" {
+  type = "string"
+}
+variable "consul_client_key" {
+  type = "string"
+}
+
 # Configure the Azure Provider
 provider "azurerm" {
   # whilst the `version` attribute is optional, we recommend pinning to a given version of the Provider
@@ -352,6 +362,9 @@ module "consul" {
   subnet_id                 = "${azurerm_subnet.consul.id}"
   analytics_workspace_id    = "${azurerm_log_analytics_workspace.analytics.workspace_id}" 
   analytics_workspace_key   = "${azurerm_log_analytics_workspace.analytics.primary_shared_key}"
+  consul_tenant_id          = "${var.consul_tenant_id}"
+  consul_client_id          = "${var.consul_client_id}"
+  consul_client_key         = "${var.consul_client_key}"
 }
 
 output "services_id" {
@@ -389,4 +402,7 @@ output "coredb_vmss_principal_id" {
 }
 output "coredb_vmss_autoscale_id" {
   value = "${module.coredb.vmss_autoscale_id}"
+}
+output "consul_vmss_id" {
+  value = "${module.consul.vmss_id}"
 }

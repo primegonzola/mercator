@@ -44,13 +44,20 @@
         },
         "vmCount": {
             "type": "int",
-            "defaultValue": 3,
-            "maxValue": 3
+            "defaultValue": 3
         },
         "vmCountMax": {
             "type": "int",
-            "defaultValue": 3,
-            "maxValue": 3
+            "defaultValue": 5
+        },
+        "consulTenantId": {
+            "type": "string"
+        },
+        "consulClientId": {
+            "type": "string"
+        },
+        "consulClientKey": {
+            "type": "string"
         }
     },
     "variables": {
@@ -62,7 +69,10 @@
         "vmssId": "[resourceId('Microsoft.Compute/virtualMachineScaleSets', variables('vmssName'))]",
         "vmssPrefix": "consul-vm-",
         "ipConfigName": "[concat('consul-vmss-ipconfig', variables('uniqueNameFix'))]",
-        "singleQuote": "'"
+        "singleQuote": "'",
+        "consulTenantId": "[parameters('consulTenantId')]",
+        "consulClientId": "[parameters('consulClientId')]",
+        "consulClientKey": "[parameters('consulClientKey')]"
     },
     "resources": [
         {
@@ -78,6 +88,9 @@
                 "type": "SystemAssigned"
             },
             "dependsOn": [],
+            "tags": {
+                "scaleSetName": "[variables('vmssName')]"
+            },
             "properties": {
                 "overprovision": false,
                 "upgradePolicy": {
@@ -151,7 +164,7 @@
                                         ]
                                     },
                                     "protectedSettings": {
-                                        "commandToExecute": "[concat('./consul-init.sh',' ',variables('singleQuote'), variables('projectName'),variables('singleQuote'))]"
+                                        "commandToExecute": "[concat('./consul-init.sh',' ',variables('singleQuote'), variables('vmssId'),variables('singleQuote'),' ',variables('singleQuote'), variables('consulTenantId'),variables('singleQuote'),' ',variables('singleQuote'), variables('consulClientId'),variables('singleQuote'),' ',variables('singleQuote'), variables('consulClientKey'),variables('singleQuote'))]"
                                     }
                                 }
                             }
@@ -164,6 +177,10 @@
     "outputs": {
         "vmssId": {
             "value": "[resourceId('Microsoft.Compute/virtualMachineScaleSets/', variables('vmssName'))]",
+            "type": "string"
+        },
+        "vmssName": {
+            "value": "[variables('vmssName')]",
             "type": "string"
         },
         "vmssPrincipalId": {
