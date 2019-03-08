@@ -10,7 +10,8 @@
         "location": "{{env `ARM_LOCATION`}}",
         "vm_size": "{{env `ARM_VM_SIZE`}}",
         "image_name": "{{env `ARM_IMAGE_NAME`}}",
-        "storage_account": "{{env `ARM_STORAGE_ACCOUNT`}}"
+        "storage_account": "{{env `ARM_STORAGE_ACCOUNT`}}",
+        "consul_version": "1.4.3"
     },
     "builders": [
         {
@@ -62,10 +63,11 @@
         {
             "execute_command": "echo '{{user `ssh_pass`}}' | {{ .Vars }} sudo -S -E sh '{{ .Path }}'",
             "inline": [
-                "curl 'https://bintray.com/user/downloadSubjectPublicKey?username=bintray' | sudo apt-key add -",
-                "echo 'deb https://kong.bintray.com/kong-community-edition-deb precise main' | sudo tee -a /etc/apt/sources.list",
+                "apt-get -y install apt-transport-https lsb-release software-properties-common dirmngr",
+                "export AZ_REPO=$(lsb_release -cs) && echo \"deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main\" | sudo tee /etc/apt/sources.list.d/azure-cli.list",
+                "apt-key --keyring /etc/apt/trusted.gpg.d/Microsoft.gpg adv --keyserver packages.microsoft.com --recv-keys BC528686B50D79E339D3721CEB3E94ADBE1229CF",
                 "apt-get -y update",
-                "apt-get -y install kong-community-edition"                       
+                "apt-get -y install azure-cli"
             ],
             "inline_shebang": "/bin/sh -x",
             "type": "shell",
@@ -74,12 +76,26 @@
         {
             "execute_command": "echo '{{user `ssh_pass`}}' | {{ .Vars }} sudo -S -E sh '{{ .Path }}'",
             "inline": [
-                "curl https://releases.hashicorp.com/consul/1.4.2/consul_1.4.2_linux_amd64.zip --output /tmp/consul.zip",
-                "unzip /tmp/consul.zip -d /usr/local/bin/"
+                "curl 'https://bintray.com/user/downloadSubjectPublicKey?username=bintray' | sudo apt-key add -",
+                "echo 'deb https://kong.bintray.com/kong-community-edition-deb precise main' | sudo tee -a /etc/apt/sources.list",
+                "apt-get -y update",
+                "apt-get -y install kong-community-edition"
             ],
             "inline_shebang": "/bin/sh -x",
             "type": "shell",
             "skip_clean": true
+        },
+        {
+            "execute_command": "echo '{{user `ssh_pass`}}' | {{ .Vars }} sudo -S -E sh '{{ .Path }}'",
+            "inline": [
+                "git clone --branch v0.0.5 https://github.com/hashicorp/terraform-azurerm-consul.git /tmp/terraform-azurerm-consul",
+                "/tmp/terraform-azurerm-consul/modules/install-consul/install-consul --version {{user `consul_version`}}",
+                "/tmp/terraform-azurerm-consul/modules/install-dnsmasq/install-dnsmasq"
+            ],
+            "inline_shebang": "/bin/sh -x",
+            "type": "shell",
+            "skip_clean": true,
+            "pause_before": "30s"
         },
         {
             "execute_command": "echo '{{user `ssh_pass`}}' | {{ .Vars }} sudo -S -E sh '{{ .Path }}'",

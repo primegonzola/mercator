@@ -119,7 +119,8 @@ if [[ "${DEPLOYMENT_MODEL}" == "arm" ]]; then
     -e "s|<customImageUri>|${CUSTOM_IMAGE_URI}|" \
     -e "s|<consulTenantId>|${CONSUL_TENANT_ID}|" \
     -e "s|<consulClientId>|${CONSUL_CLIENT_ID}|" \
-    -e "s|<consulClientKey>|${CONSUL_CLIENT_KEY}|" \
+    -e "s|<consulClientKey
+    >|${CONSUL_CLIENT_KEY}|" \
     main.parameters.json
 
     # create the main deployment either in background or not
