@@ -50,6 +50,9 @@
             "type": "int",
             "defaultValue": 5
         },
+        "consulMode": {
+            "type": "string"
+        },
         "consulTenantId": {
             "type": "string"
         },
@@ -70,6 +73,7 @@
         "vmssPrefix": "consul-vm-",
         "ipConfigName": "[concat('consul-vmss-ipconfig', variables('uniqueNameFix'))]",
         "singleQuote": "'",
+        "consulMode": "[parameters('consulMode')]",
         "consulTenantId": "[parameters('consulTenantId')]",
         "consulClientId": "[parameters('consulClientId')]",
         "consulClientKey": "[parameters('consulClientKey')]"
@@ -164,7 +168,7 @@
                                         ]
                                     },
                                     "protectedSettings": {
-                                        "commandToExecute": "[concat('./consul-init.sh',' ',variables('singleQuote'), variables('vmssId'),variables('singleQuote'),' ',variables('singleQuote'), variables('consulTenantId'),variables('singleQuote'),' ',variables('singleQuote'), variables('consulClientId'),variables('singleQuote'),' ',variables('singleQuote'), variables('consulClientKey'),variables('singleQuote'))]"
+                                        "commandToExecute": "[concat('./consul-init.sh',' ',variables('singleQuote'), variables('vmssId'),variables('singleQuote'),' ',variables('singleQuote'), variables('consulMode'),variables('singleQuote'),' ',variables('singleQuote'), variables('consulTenantId'),variables('singleQuote'),' ',variables('singleQuote'), variables('consulClientId'),variables('singleQuote'),' ',variables('singleQuote'), variables('consulClientKey'),variables('singleQuote'))]"
                                     }
                                 }
                             }

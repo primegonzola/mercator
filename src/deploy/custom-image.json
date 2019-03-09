@@ -32,7 +32,7 @@
             "os_disk_size_gb": 32,
             "image_publisher": "Canonical",
             "image_offer": "UbuntuServer",
-            "image_sku": "18.04-LTS",
+            "image_sku": "16.04-LTS",
             "image_version": "latest",
             "ssh_pty": "true"
         }

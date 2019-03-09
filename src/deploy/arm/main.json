@@ -279,7 +279,7 @@
       "properties": {
         "mode": "Incremental",
         "templateLink": {
-          "uri": "[concat(uri(deployment().properties.templateLink.uri, 'consul.json'), parameters('bootstrapStorageAccountSas'))]",
+          "uri": "[concat(uri(deployment().properties.templateLink.uri, 'vmss.json'), parameters('bootstrapStorageAccountSas'))]",
           "contentVersion": "1.0.0.0"
         },
         "parameters": {
@@ -294,6 +294,9 @@
           },
           "projectName": {
             "value": "[variables('projectName')]"
+          },
+          "hostRole": {
+            "value": "consul"
           },
           "subnetId": {
             "value": "[reference('network').outputs.consulSubnetId.value]"
@@ -319,6 +322,24 @@
           "omsWorkspaceKey": {
             "value": "[reference('analytics').outputs.workspaceKey.value]"
           },
+          "statusTopicId": {
+            "value": "[reference('topics').outputs.statusTopicId.value]"
+          },
+          "storageAccountId": {
+            "value": "[reference('storage').outputs.storageAccountId.value]"
+          },
+          "imageUri": {
+            "value": "[variables('customImageUri')]"
+          },
+          "keyVaultId": {
+            "value": "[variables('keyVaultId')]"
+          },
+          "healthPath": {
+            "value": "/"
+          },
+          "healthPort": {
+            "value": 8001
+          },
           "consulTenantId": {
             "value": "[variables('consulTenantId')]"
           },
@@ -327,7 +348,7 @@
           },
           "consulClientKey": {
             "value": "[variables('consulClientKey')]"
-          }
+          } 
         }
       }
     },
@@ -399,7 +420,19 @@
           },
           "healthPort": {
             "value": 8001
-          }
+          },
+          "consulVmssId": {
+            "value": "[reference('consul').outputs.vmssId.value]"
+          },
+          "consulTenantId": {
+            "value": "[variables('consulTenantId')]"
+          },
+          "consulClientId": {
+            "value": "[variables('consulClientId')]"
+          },
+          "consulClientKey": {
+            "value": "[variables('consulClientKey')]"
+          } 
         }
       }
     },
@@ -471,6 +504,102 @@
           },
           "healthPort": {
             "value": 8080
+          },
+          "consulVmssId": {
+            "value": "[reference('consul').outputs.vmssId.value]"
+          },
+          "consulTenantId": {
+            "value": "[variables('consulTenantId')]"
+          },
+          "consulClientId": {
+            "value": "[variables('consulClientId')]"
+          },
+          "consulClientKey": {
+            "value": "[variables('consulClientKey')]"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "[variables('apiVersions').deployments]",
+      "name": "mds",
+      "dependsOn": [],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(uri(deployment().properties.templateLink.uri, 'vmss.json'), parameters('bootstrapStorageAccountSas'))]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "apiVersions": {
+            "value": "[variables('apiVersions')]"
+          },
+          "uniqueNameFix": {
+            "value": "[variables('uniqueNameFix')]"
+          },
+          "operationMode": {
+            "value": "[variables('operationMode')]"
+          },
+          "projectName": {
+            "value": "[variables('projectName')]"
+          },
+          "hostRole": {
+            "value": "mds"
+          },
+          "subnetId": {
+            "value": "[reference('network').outputs.mdsSubnetId.value]"
+          },
+          "adminUserName": {
+            "value": "[variables('adminUserName')]"
+          },
+          "adminPassword": {
+            "value": "[variables('adminPassword')]"
+          },
+          "bootstrapStorageAccountName": {
+            "value": "[parameters('bootstrapStorageAccount')]"
+          },
+          "bootstrapStorageAccountKey": {
+            "value": "[parameters('bootstrapStorageAccountKey')]"
+          },
+          "bootstrapStorageAccountSas": {
+            "value": "[parameters('bootstrapStorageAccountSas')]"
+          },
+          "omsWorkspaceId": {
+            "value": "[reference('analytics').outputs.workspaceId.value]"
+          },
+          "omsWorkspaceKey": {
+            "value": "[reference('analytics').outputs.workspaceKey.value]"
+          },
+          "statusTopicId": {
+            "value": "[reference('topics').outputs.statusTopicId.value]"
+          },
+          "storageAccountId": {
+            "value": "[reference('storage').outputs.storageAccountId.value]"
+          },
+          "imageUri": {
+            "value": "[variables('customImageUri')]"
+          },
+          "keyVaultId": {
+            "value": "[variables('keyVaultId')]"
+          },
+          "healthPath": {
+            "value": "/health"
+          },
+          "healthPort": {
+            "value": 8080
+          },
+          "consulVmssId": {
+            "value": "[reference('consul').outputs.vmssId.value]"
+          },
+          "consulTenantId": {
+            "value": "[variables('consulTenantId')]"
+          },
+          "consulClientId": {
+            "value": "[variables('consulClientId')]"
+          },
+          "consulClientKey": {
+            "value": "[variables('consulClientKey')]"
           }
         }
       }
@@ -499,10 +628,6 @@
     },
     "keyVaultUri": {
       "value": "[reference('vault').outputs.keyVaultUri.value]",
-      "type": "string"
-    },
-    "consulVmssId": {
-      "value": "[reference('consul').outputs.vmssId.value]",
       "type": "string"
     },
     "apiVmssId": {
@@ -535,6 +660,22 @@
     },
     "coredbVmssAutoScaleId": {
       "value": "[reference('coredb').outputs.vmssAutoScaleId.value]",
+      "type": "string"
+    },
+    "consulVmssId": {
+      "value": "[reference('consul').outputs.vmssId.value]",
+      "type": "string"
+    },
+    "consulVmssPrefix": {
+      "value": "[reference('consul').outputs.vmssPrefix.value]",
+      "type": "string"
+    },
+    "consulVmssPrincipalId": {
+      "value": "[reference('consul').outputs.vmssPrincipalId.value]",
+      "type": "string"
+    },
+    "consulVmssAutoScaleId": {
+      "value": "[reference('consul').outputs.vmssAutoScaleId.value]",
       "type": "string"
     }
   }

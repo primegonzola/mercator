@@ -43,6 +43,9 @@ variable "analytics_workspace_id" {
 variable "analytics_workspace_key" {
   type = "string"
 }
+variable "consul_mode" {
+  type = "string"
+}
 variable "consul_tenant_id" {
   type = "string"
 }
@@ -130,7 +133,7 @@ resource "azurerm_virtual_machine_scale_set" "consul" {
     settings                      = <<SETTINGS
     {
         "fileUris": [ "${local.file_init_uri}" ],
-        "commandToExecute": "./consul-init.sh \"${local.vmss_id}\" \"${var.consul_tenant_id}\" \"${var.consul_client_id}\" \"${var.consul_client_key}\""
+        "commandToExecute": "./consul-init.sh \"${local.vmss_id}\" \"${var.consul_mode}\" \"${var.consul_tenant_id}\" \"${var.consul_client_id}\" \"${var.consul_client_key}\""
     }
 SETTINGS
   }

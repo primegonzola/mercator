@@ -20,7 +20,10 @@ STATUS_TOPIC_SUBSCRIPTION_NAME=${STATUS_TOPIC_NAME}-subscription
 PUBLISHING_PROFILE_JSON=$(az webapp deployment list-publishing-profiles --output json --resource-group ${RESOURCE_GROUP} --name ${SERVICES_NAME})
 PUBLISHING_USERNAME=$(echo ${PUBLISHING_PROFILE_JSON} | jq -r '.[0] | .userName')
 PUBLISHING_PASSWORD=$(echo ${PUBLISHING_PROFILE_JSON} | jq -r '.[0] | .userPWD')
-AUTH_BASE64_TOKEN=$(printf ${PUBLISHING_USERNAME}:${PUBLISHING_PASSWORD} | iconv -t WINDOWS-1252 | base64 --wrap=0)
+BASE64WRAP="--wrap=0"
+[[ $(uname) == "Darwin" ]] && BASE64WRAP=""
+AUTH_BASE64_TOKEN=$(printf ${PUBLISHING_USERNAME}:${PUBLISHING_PASSWORD} | iconv -t WINDOWS-1252 | base64 ${BASE64WRAP})
+
 
 # save configuration
 STATUS_TOPIC_KEY=$(az eventgrid topic key list --name ${STATUS_TOPIC_NAME} -g ${RESOURCE_GROUP} --query "key1" --output tsv)

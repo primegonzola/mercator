@@ -1,8 +1,10 @@
 #!/bin/bash
+
 VMSS_ID="${1}"
-CONSUL_TENANT_ID="${2}"
-CONSUL_CLIENT_ID="${3}"
-CONSUL_CLIENT_KEY="${4}"
+CONSUL_MODE=${2}
+CONSUL_TENANT_ID="${3}"
+CONSUL_CLIENT_ID="${4}"
+CONSUL_CLIENT_KEY="${5}"
 
 # extract info
 PARTS=(${VMSS_ID//// })
@@ -36,7 +38,7 @@ SUBSCRIPTION_ID=${PARTS[1]}
 
 # run consul as server
 /opt/consul/bin/run-consul \
-    --server \
+    --${CONSUL_MODE} \
     --scale-set-name "${VMSS_NAME}" \
     --subscription-id "${SUBSCRIPTION_ID}" \
     --tenant-id "${CONSUL_TENANT_ID}" \

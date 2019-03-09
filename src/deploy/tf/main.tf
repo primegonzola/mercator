@@ -40,7 +40,6 @@ variable "boot_storage_account_sas" {
 variable "custom_image_uri" {
   type = "string"
 }
-
 variable "consul_tenant_id" {
   type = "string"
 }
@@ -257,18 +256,24 @@ resource "azurerm_subnet" "coredb" {
   virtual_network_name        = "${azurerm_virtual_network.network.name}"
   address_prefix              = "10.0.1.0/24"
 }
+resource "azurerm_subnet" "mds" {
+  name                        = "coredb-sn-${var.unique}"
+  resource_group_name         = "${var.resource_group}"
+  virtual_network_name        = "${azurerm_virtual_network.network.name}"
+  address_prefix              = "10.0.2.0/24"
+}
 resource "azurerm_subnet" "consul" {
   name                        = "consul-sn-${var.unique}"
   resource_group_name         = "${var.resource_group}"
   virtual_network_name        = "${azurerm_virtual_network.network.name}"
-  address_prefix              = "10.0.2.0/24"
+  address_prefix              = "10.0.10.0/24"
 }
 # create jumpbox subnet
 resource "azurerm_subnet" "jumpbox" {
   name                        = "jumpbox-sn-${var.unique}"
   resource_group_name         = "${var.resource_group}"
   virtual_network_name        = "${azurerm_virtual_network.network.name}"
-  address_prefix              = "10.0.3.0/24"
+  address_prefix              = "10.0.20.0/24"
 }
 
 module "jumpbox" {
@@ -313,7 +318,11 @@ module "api" {
   status_topic_id           = "${azurerm_eventgrid_topic.status.id}"
   load_balanced             = "true"
   health_path               = "/"
-  health_port               = "8001"  
+  health_port               = "8001"
+  consul_vmss_id            = "${module.consul.vmss_id}"
+  consul_tenant_id          = "${var.consul_tenant_id}"
+  consul_client_id          = "${var.consul_client_id}"
+  consul_client_key         = "${var.consul_client_key}"
 }
 
 module "coredb" {
@@ -342,10 +351,14 @@ module "coredb" {
   load_balanced             = "true"
   health_path               = "/health"
   health_port               = "8080"  
+  consul_vmss_id            = "${module.consul.vmss_id}"
+  consul_tenant_id          = "${var.consul_tenant_id}"
+  consul_client_id          = "${var.consul_client_id}"
+  consul_client_key         = "${var.consul_client_key}"
 }
 
-module "consul" {
-  source                    = "modules/consul"
+module "mds" {
+  source                    = "modules/vmss"
   version                   = "1.0.0"
   unique                    = "${var.unique}"
   project_name              = "${var.project_name}"
@@ -359,9 +372,50 @@ module "consul" {
   boot_storage_account_name = "${var.boot_storage_account_name}"
   boot_storage_account_key  = "${var.boot_storage_account_key}"
   boot_storage_account_sas  = "${var.boot_storage_account_sas}"
+  host_role                 = "mds"
+  subnet_id                 = "${azurerm_subnet.mds.id}"
+  analytics_workspace_id    = "${azurerm_log_analytics_workspace.analytics.workspace_id}" 
+  analytics_workspace_key   = "${azurerm_log_analytics_workspace.analytics.primary_shared_key}" 
+  key_vault_id              = "${local.key_vault_id}"
+  custom_image_uri          = "${var.custom_image_uri}"
+  storage_account_id        = "${azurerm_storage_account.storage.id}"
+  status_topic_id           = "${azurerm_eventgrid_topic.status.id}"
+  load_balanced             = "true"
+  health_path               = "/health"
+  health_port               = "8080"  
+  consul_vmss_id            = "${module.consul.vmss_id}"
+  consul_tenant_id          = "${var.consul_tenant_id}"
+  consul_client_id          = "${var.consul_client_id}"
+  consul_client_key         = "${var.consul_client_key}"
+}
+
+module "consul" {
+  source                    = "modules/vmss"
+  version                   = "1.0.0"
+  unique                    = "${var.unique}"
+  project_name              = "${var.project_name}"
+  resource_group            = "${azurerm_resource_group.main.name}"
+  location                  = "${azurerm_resource_group.main.location}"
+  subscription_id           = "${var.subscription_id}"
+  tenant_id                 = "${var.tenant_id}"
+  client_id                 = "${var.client_id}"
+  client_secret             = "${var.client_secret}"
+  boot_storage_account_uri  = "${var.boot_storage_account_uri}"
+  boot_storage_account_name = "${var.boot_storage_account_name}"
+  boot_storage_account_key  = "${var.boot_storage_account_key}"
+  boot_storage_account_sas  = "${var.boot_storage_account_sas}"
+  host_role                 = "consul"
   subnet_id                 = "${azurerm_subnet.consul.id}"
   analytics_workspace_id    = "${azurerm_log_analytics_workspace.analytics.workspace_id}" 
-  analytics_workspace_key   = "${azurerm_log_analytics_workspace.analytics.primary_shared_key}"
+  analytics_workspace_key   = "${azurerm_log_analytics_workspace.analytics.primary_shared_key}" 
+  key_vault_id              = "${local.key_vault_id}"
+  custom_image_uri          = "${var.custom_image_uri}"
+  storage_account_id        = "${azurerm_storage_account.storage.id}"
+  status_topic_id           = "${azurerm_eventgrid_topic.status.id}"
+  load_balanced             = "true"
+  health_path               = "/health"
+  health_port               = "8080"  
+  consul_vmss_id            = "none"
   consul_tenant_id          = "${var.consul_tenant_id}"
   consul_client_id          = "${var.consul_client_id}"
   consul_client_key         = "${var.consul_client_key}"
@@ -405,4 +459,10 @@ output "coredb_vmss_autoscale_id" {
 }
 output "consul_vmss_id" {
   value = "${module.consul.vmss_id}"
+}
+output "consul_vmss_principal_id" {
+  value = "${module.consul.vmss_principal_id}"
+}
+output "consul_vmss_autoscale_id" {
+  value = "${module.consul.vmss_autoscale_id}"
 }

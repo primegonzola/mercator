@@ -9,6 +9,10 @@ HOST_ROLE="${7}"
 STATUS_TOPIC_ID="${8}"
 STORAGE_ACCOUNT_ID="${9}"
 KEYVAULT_ID="${10}"
+CONSUL_VMSS_ID="${11}"
+CONSUL_TENANT_ID="${12}"
+CONSUL_CLIENT_ID="${13}"
+CONSUL_CLIENT_KEY="${14}"
 
 # define root of all evil
 ROOT_DIR=/opt/${PROJECT_NAME}
@@ -53,6 +57,10 @@ sed --in-place=.bak \
 	-e "s|<STATUS_TOPIC_ID>|${STATUS_TOPIC_ID}|" \
 	-e "s|<STORAGE_ACCOUNT_ID>|${STORAGE_ACCOUNT_ID}|" \
 	-e "s|<KEYVAULT_ID>|${KEYVAULT_ID}|" \
+	-e "s|<CONSUL_VMSS_ID>|${CONSUL_VMSS_ID}|" \
+	-e "s|<CONSUL_TENANT_ID>|${CONSUL_TENANT_ID}|" \
+	-e "s|<CONSUL_CLIENT_ID>|${CONSUL_CLIENT_ID}|" \
+	-e "s|<CONSUL_CLIENT_KEY>|${CONSUL_CLIENT_KEY}|" \
 	${ROOT_DIR}/host/init.sh
 
 # execute directly

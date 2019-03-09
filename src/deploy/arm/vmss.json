@@ -93,7 +93,20 @@
         "healthPort": {
             "type": "int",
             "defaultValue": 80
-        }
+        },
+        "consulVmssId": {
+            "type": "string",
+            "defaultValue": "none"
+        },
+        "consulTenantId": {
+            "type": "string"
+        },
+        "consulClientId": {
+            "type": "string"
+        },
+        "consulClientKey": {
+            "type": "string"
+        }        
     },
     "variables": {
         "projectName": "[parameters('projectName')]",
@@ -124,6 +137,10 @@
         "imageUri": "[parameters('imageUri')]",
         "healthPath": "[parameters('healthPath')]",
         "healthPort": "[parameters('healthPort')]",
+        "consulVmssId": "[if(bool(equals(parameters('consulVmssId'), 'none')), variables('vmssId'), parameters('consulVmssId'))]",
+        "consulTenantId": "[parameters('consulTenantId')]",
+        "consulClientId": "[parameters('consulClientId')]",
+        "consulClientKey": "[parameters('consulClientKey')]", 
         "singleQuote": "'"
     },
     "resources": [
@@ -222,6 +239,9 @@
                 "[concat('Microsoft.Compute/images/', variables('imageName'))]",
                 "[resourceId('Microsoft.Network/loadBalancers',variables('lbName'))]"
             ],
+            "tags": {
+                "scaleSetName": "[variables('vmssName')]"
+            }, 
             "properties": {
                 "overprovision": false,
                 "upgradePolicy": {
@@ -297,7 +317,7 @@
                                         ]
                                     },
                                     "protectedSettings": {
-                                        "commandToExecute": "[concat('./host-init.sh',' ',variables('singleQuote'), variables('projectName'),variables('singleQuote'),' ', variables('singleQuote'), parameters('bootstrapStorageAccountName'),variables('singleQuote'),' ',variables('singleQuote'), parameters('bootstrapStorageAccountKey'),variables('singleQuote'),' ',variables('singleQuote'), parameters('bootstrapStorageAccountSas'),variables('singleQuote'),' ', variables('singleQuote'), 'VirtualMachineScaleSet', variables('singleQuote'), ' ', variables('singleQuote'), variables('vmssId'), variables('singleQuote'), ' ', variables('singleQuote'), variables('hostRole'), variables('singleQuote'), ' ',variables('singleQuote'), parameters('statusTopicId'), variables('singleQuote'),' ',variables('singleQuote'),variables('storageAccountId'),variables('singleQuote'), ' ',variables('singleQuote'),variables('keyVaultId'),variables('singleQuote'))]"
+                                        "commandToExecute": "[concat('./host-init.sh',' ',variables('singleQuote'), variables('projectName'),variables('singleQuote'),' ', variables('singleQuote'), parameters('bootstrapStorageAccountName'),variables('singleQuote'),' ',variables('singleQuote'), parameters('bootstrapStorageAccountKey'),variables('singleQuote'),' ',variables('singleQuote'), parameters('bootstrapStorageAccountSas'),variables('singleQuote'),' ', variables('singleQuote'), 'VirtualMachineScaleSet', variables('singleQuote'), ' ', variables('singleQuote'), variables('vmssId'), variables('singleQuote'), ' ', variables('singleQuote'), variables('hostRole'), variables('singleQuote'), ' ',variables('singleQuote'), parameters('statusTopicId'), variables('singleQuote'),' ',variables('singleQuote'),variables('storageAccountId'),variables('singleQuote'), ' ',variables('singleQuote'),variables('keyVaultId'),variables('singleQuote'),  ' ',variables('singleQuote'),variables('consulVmssId'),variables('singleQuote'),' ',variables('singleQuote'),variables('consulTenantId'),variables('singleQuote'), ' ',variables('singleQuote'),variables('consulClientId'),variables('singleQuote'), ' ',variables('singleQuote'),variables('consulClientKey'),variables('singleQuote'))]"
                                     }
                                 }
                             }
@@ -323,6 +343,9 @@
                 "[concat('Microsoft.Compute/images/', variables('imageName'))]",
                 "[resourceId('Microsoft.Network/loadBalancers',variables('lbName'))]"
             ],
+            "tags": {
+                "scaleSetName": "[variables('vmssName')]"
+            },
             "properties": {
                 "overprovision": false,
                 "upgradePolicy": {
@@ -393,7 +416,7 @@
                                         ]
                                     },
                                     "protectedSettings": {
-                                        "commandToExecute": "[concat('./host-init.sh',' ',variables('singleQuote'), variables('projectName'),variables('singleQuote'),' ', variables('singleQuote'), parameters('bootstrapStorageAccountName'),variables('singleQuote'),' ',variables('singleQuote'), parameters('bootstrapStorageAccountKey'),variables('singleQuote'),' ',variables('singleQuote'), parameters('bootstrapStorageAccountSas'),variables('singleQuote'),' ', variables('singleQuote'), 'VirtualMachineScaleSet', variables('singleQuote'), ' ', variables('singleQuote'), variables('vmssId'), variables('singleQuote'), ' ', variables('singleQuote'), variables('hostRole'), variables('singleQuote'), ' ',variables('singleQuote'), parameters('statusTopicId'), variables('singleQuote'),' ',variables('singleQuote'),variables('storageAccountId'),variables('singleQuote'), ' ',variables('singleQuote'),variables('keyVaultId'),variables('singleQuote'))]"
+                                        "commandToExecute": "[concat('./host-init.sh',' ',variables('singleQuote'), variables('projectName'),variables('singleQuote'),' ', variables('singleQuote'), parameters('bootstrapStorageAccountName'),variables('singleQuote'),' ',variables('singleQuote'), parameters('bootstrapStorageAccountKey'),variables('singleQuote'),' ',variables('singleQuote'), parameters('bootstrapStorageAccountSas'),variables('singleQuote'),' ', variables('singleQuote'), 'VirtualMachineScaleSet', variables('singleQuote'), ' ', variables('singleQuote'), variables('vmssId'), variables('singleQuote'), ' ', variables('singleQuote'), variables('hostRole'), variables('singleQuote'), ' ',variables('singleQuote'), parameters('statusTopicId'), variables('singleQuote'),' ',variables('singleQuote'),variables('storageAccountId'),variables('singleQuote'), ' ',variables('singleQuote'),variables('keyVaultId'),variables('singleQuote'),  ' ',variables('singleQuote'),variables('consulVmssId'),variables('singleQuote'),' ',variables('singleQuote'),variables('consulTenantId'),variables('singleQuote'), ' ',variables('singleQuote'),variables('consulClientId'),variables('singleQuote'), ' ',variables('singleQuote'),variables('consulClientKey'),variables('singleQuote'))]"
                                     }
                                 }
                             }

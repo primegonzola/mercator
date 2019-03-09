@@ -107,7 +107,7 @@ if [[ "${DEPLOYMENT_MODEL}" == "arm" ]]; then
     # replace with right versions
     replace_versions main.parameters.template.json main.parameters.json
     # replace additional parameters in parameter file
-    sed --in-place=.bak \
+    sed -i.bak \
     -e "s|<uniqueNameFix>|${UNIQUE_NAME_FIX}|" \
     -e "s|<operationMode>|${OPERATION_MODE}|" \
     -e "s|<projectName>|${PROJECT_NAME}|" \
@@ -119,8 +119,7 @@ if [[ "${DEPLOYMENT_MODEL}" == "arm" ]]; then
     -e "s|<customImageUri>|${CUSTOM_IMAGE_URI}|" \
     -e "s|<consulTenantId>|${CONSUL_TENANT_ID}|" \
     -e "s|<consulClientId>|${CONSUL_CLIENT_ID}|" \
-    -e "s|<consulClientKey
-    >|${CONSUL_CLIENT_KEY}|" \
+    -e "s|<consulClientKey>|${CONSUL_CLIENT_KEY}|" \
     main.parameters.json
 
     # create the main deployment either in background or not
@@ -148,8 +147,10 @@ if [[ "${DEPLOYMENT_MODEL}" == "arm" ]]; then
     COREDB_VMSS_PRINCIPAL_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.properties.outputs.coredbVmssPrincipalId.value')
     COREDB_VMSS_AUTOSCALE_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.properties.outputs.coredbVmssAutoScaleId.value')
 
-    # consul vmss
+    # get the consul subsystem settings
     CONSUL_VMSS_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.properties.outputs.consulVmssId.value')
+    CONSUL_VMSS_PRINCIPAL_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.properties.outputs.consulVmssPrincipalId.value')
+    CONSUL_VMSS_AUTOSCALE_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.properties.outputs.consulVmssAutoScaleId.value')
 
     # leave
     popd
@@ -161,7 +162,7 @@ if [[ "${DEPLOYMENT_MODEL}" == "tf" ]]; then
     # create the main deployment either in background or not
     display_progress "Deploying main template into resource group using ${DEPLOYMENT_MODEL}"
     # replace additional parameters in parameter file
-    sed \
+    sed -i.bak \
     -e "s|<unique-name-fix>|${UNIQUE_NAME_FIX}|" \
     -e "s|<operation-mode>|${OPERATION_MODE}|" \
     -e "s|<project-name>|${PROJECT_NAME}|" \
@@ -179,11 +180,11 @@ if [[ "${DEPLOYMENT_MODEL}" == "tf" ]]; then
     -e "s|<consul-tenant-id>|${CONSUL_TENANT_ID}|" \
     -e "s|<consul-client-id>|${CONSUL_CLIENT_ID}|" \
     -e "s|<consul-client-key>|${CONSUL_CLIENT_KEY}|" \
-    input.parameters.tfvars > input.tfvars 
+    input.parameters.tfvars 
     # initialize terraform
     terraform init
     # apply configuration
-    terraform apply -var-file=input.tfvars -auto-approve &> ${LOG_DIR}/main.tf.apply.log
+    terraform apply -var-file=input.parameters.tfvars -auto-approve &> ${LOG_DIR}/main.tf.apply.log
     # all done
     display_progress "Main deployment completed"
     MAIN_OUTPUT=$(terraform output -json)
@@ -203,7 +204,9 @@ if [[ "${DEPLOYMENT_MODEL}" == "tf" ]]; then
     COREDB_VMSS_PRINCIPAL_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.coredb_vmss_principal_id.value')
     COREDB_VMSS_AUTOSCALE_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.coredb_vmss_autoscale_id.value')
 
-    CONSUL_VMSS_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.coredb_consul_id.value')
+    CONSUL_VMSS_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.consul_vmss_id.value')
+    CONSUL_VMSS_PRINCIPAL_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.consul_vmss_principal_id.value')
+    CONSUL_VMSS_AUTOSCALE_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.consul_vmss_autoscale_id.value')
 
     # leave
     popd
@@ -222,12 +225,18 @@ az role assignment create --assignee-object-id ${COREDB_VMSS_PRINCIPAL_ID} --sco
 az role assignment create --assignee-object-id ${COREDB_VMSS_PRINCIPAL_ID} --scope ${KEY_VAULT_ID} --role Contributor
 az role assignment create --assignee-object-id ${COREDB_VMSS_PRINCIPAL_ID} --scope ${STORAGE_ACCOUNT_ID} --role Contributor
 
+az role assignment create --assignee-object-id ${CONSUL_VMSS_PRINCIPAL_ID} --scope ${STATUS_TOPIC_ID} --role Contributor
+az role assignment create --assignee-object-id ${CONSUL_VMSS_PRINCIPAL_ID} --scope ${KEY_VAULT_ID} --role Contributor
+az role assignment create --assignee-object-id ${CONSUL_VMSS_PRINCIPAL_ID} --scope ${STORAGE_ACCOUNT_ID} --role Contributor
+
 az role assignment create --assignee-object-id ${SERVICES_PRINCIPAL_ID} --scope ${API_VMSS_ID} --role Contributor
 az role assignment create --assignee-object-id ${SERVICES_PRINCIPAL_ID} --scope ${API_VMSS_AUTOSCALE_ID} --role Contributor
 
-az role assignment create --assignee-object-id ${CONSUL_CLIENT_ID} --scope ${CONSUL_VMSS_ID} --role Reader
-
 # scaling host
+display_progress "Scaling consul"
+az monitor autoscale update --ids ${CONSUL_VMSS_AUTOSCALE_ID} --count 3
+az vmss scale --new-capacity 3 --no-wait --ids ${CONSUL_VMSS_ID}
+
 display_progress "Scaling api"
 az monitor autoscale update --ids ${API_VMSS_AUTOSCALE_ID} --count 2
 az vmss scale --new-capacity 2 --no-wait --ids ${API_VMSS_ID}

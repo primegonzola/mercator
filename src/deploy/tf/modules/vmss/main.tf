@@ -62,27 +62,33 @@ variable "load_balanced" {
   type = "string"
   default = "false"
 }
-
-# variable "lb_bep_id" {
-#   type = "string"
-#   default = null
-# }
-
 variable "health_path" {
   type = "string"
   default = "/"
 }
-
 variable "health_port" {
   type = "string"
   default = "80"
+}
+variable "consul_vmss_id" {
+  type = "string"
+  default = "none"
+}
+variable "consul_tenant_id" {
+  type = "string"
+}
+variable "consul_client_id" {
+  type = "string"
+}
+variable "consul_client_key" {
+  type = "string"
 }
 
 resource "azurerm_lb" "host" {
   name                            = "${var.host_role}-lb-${var.unique}"
   resource_group_name             = "${var.resource_group}"
   location                        = "${var.location}"
-  sku                             = "Standard"
+  sku                             = "Basic"
 
   frontend_ip_configuration {
     name        = "PublicIPAddress"    
@@ -116,10 +122,11 @@ resource "azurerm_lb_rule" "lbnatrule" {
 }
 
 locals {
-  vmss_name_slb = "${var.host_role}-vmss-slb-${var.unique}"
-  vmss_name_nlb = "${var.host_role}-vmss-nlb-${var.unique}"
-  vmss_name     = "${var.load_balanced == "true" ? local.vmss_name_slb : local.vmss_name_nlb }"
-  vmss_id       = "${format("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachineScaleSets/%s", var.subscription_id, var.resource_group, local.vmss_name)}"
+  vmss_name_slb   = "${var.host_role}-vmss-slb-${var.unique}"
+  vmss_name_nlb   = "${var.host_role}-vmss-nlb-${var.unique}"
+  vmss_name       = "${var.load_balanced == "true" ? local.vmss_name_slb : local.vmss_name_nlb }"
+  vmss_id         = "${format("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachineScaleSets/%s", var.subscription_id, var.resource_group, local.vmss_name)}"
+  consul_vmss_id  = "${var.consul_vmss_id == "none" ? local.vmss_id : var.consul_vmss_id }"
 }
 
 locals {
@@ -145,6 +152,10 @@ resource "azurerm_virtual_machine_scale_set" "host" {
   location                        = "${var.location}"
   upgrade_policy_mode             = "Automatic",
 
+  tags = {
+    scaleSetName = "${local.vmss_name}"
+  }
+
   sku {
       name                = "Standard_F2"
       tier                = "Standard"
@@ -162,7 +173,7 @@ resource "azurerm_virtual_machine_scale_set" "host" {
     name              = ""
     caching           = "ReadWrite"
     create_option     = "FromImage"
-    managed_disk_type = "Premium_LRS"
+    managed_disk_type = "Standard_LRS"
   }
 
   os_profile {
@@ -204,7 +215,7 @@ resource "azurerm_virtual_machine_scale_set" "host" {
     settings                      = <<SETTINGS
     {
         "fileUris": [ "${local.file_download_uri}", "${local.file_init_uri}" ],
-        "commandToExecute": "./host-init.sh \"${var.project_name}\" \"${var.boot_storage_account_name}\" \"${var.boot_storage_account_key}\" \"${var.boot_storage_account_sas}\" \"VirtualMachineScaleSet\" \"${local.vmss_id}\" \"${var.host_role}\" \"${var.status_topic_id}\" \"${var.storage_account_id}\" \"${var.key_vault_id}\""
+        "commandToExecute": "./host-init.sh \"${var.project_name}\" \"${var.boot_storage_account_name}\" \"${var.boot_storage_account_key}\" \"${var.boot_storage_account_sas}\" \"VirtualMachineScaleSet\" \"${local.vmss_id}\" \"${var.host_role}\" \"${var.status_topic_id}\" \"${var.storage_account_id}\" \"${var.key_vault_id}\" \"${local.consul_vmss_id}\" \"${var.consul_tenant_id}\" \"${var.consul_client_id}\" \"${var.consul_client_key}\""
     }
 SETTINGS
   }
