@@ -456,6 +456,10 @@
         }
     ],
     "outputs": {
+        "loadBalancerId": {
+            "value": "[variables('lbId')]",
+            "type": "string"
+        },
         "vmssId": {
             "value": "[resourceId('Microsoft.Compute/virtualMachineScaleSets/', variables('vmssName'))]",
             "type": "string"

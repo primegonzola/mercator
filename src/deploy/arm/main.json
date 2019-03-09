@@ -267,6 +267,9 @@
           },
           "adminPassword": {
             "value": "[variables('adminPassword')]"
+          },
+          "imageUri": {
+            "value": "[variables('customImageUri')]"
           }
         }
       }
@@ -334,11 +337,8 @@
           "keyVaultId": {
             "value": "[variables('keyVaultId')]"
           },
-          "healthPath": {
-            "value": "/"
-          },
-          "healthPort": {
-            "value": 8001
+          "loadbalanced": {
+            "value": false
           },
           "consulTenantId": {
             "value": "[variables('consulTenantId')]"
@@ -646,6 +646,10 @@
       "value": "[reference('api').outputs.vmssAutoScaleId.value]",
       "type": "string"
     },
+    "apiLoadBalancerId": {
+      "value": "[reference('api').outputs.loadBalancerId.value]",
+      "type": "string"
+    },
     "coredbVmssId": {
       "value": "[reference('coredb').outputs.vmssId.value]",
       "type": "string"
@@ -660,6 +664,30 @@
     },
     "coredbVmssAutoScaleId": {
       "value": "[reference('coredb').outputs.vmssAutoScaleId.value]",
+      "type": "string"
+    },
+    "coredbLoadBalancerId": {
+      "value": "[reference('coredb').outputs.loadBalancerId.value]",
+      "type": "string"
+    },
+    "mdsVmssId": {
+      "value": "[reference('mds').outputs.vmssId.value]",
+      "type": "string"
+    },
+    "mdsVmssPrefix": {
+      "value": "[reference('mds').outputs.vmssPrefix.value]",
+      "type": "string"
+    },
+    "mdsVmssPrincipalId": {
+      "value": "[reference('mds').outputs.vmssPrincipalId.value]",
+      "type": "string"
+    },
+    "mdsVmssAutoScaleId": {
+      "value": "[reference('mds').outputs.vmssAutoScaleId.value]",
+      "type": "string"
+    },
+    "mdsLoadBalancerId": {
+      "value": "[reference('mds').outputs.loadBalancerId.value]",
       "type": "string"
     },
     "consulVmssId": {

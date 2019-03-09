@@ -290,7 +290,8 @@ module "jumpbox" {
   boot_storage_account_name = "${var.boot_storage_account_name}"
   boot_storage_account_key  = "${var.boot_storage_account_key}"
   boot_storage_account_sas  = "${var.boot_storage_account_sas}"
-  subnet_id                 = "${azurerm_subnet.jumpbox.id}"
+  subnet_id                 = "${azurerm_subnet.jumpbox.id}",
+  custom_image_uri          = "${var.custom_image_uri}"
 }
 
 module "api" {
@@ -439,6 +440,9 @@ output "key_vault_uri" {
 output "status_topic_id" {
   value = "${azurerm_eventgrid_topic.status.id}"
 }
+output "api_lb_id" {
+  value = "${module.coredb.lb_id}"
+}
 output "api_vmss_id" {
   value = "${module.api.vmss_id}"
 }
@@ -448,6 +452,9 @@ output "api_vmss_principal_id" {
 output "api_vmss_autoscale_id" {
   value = "${module.api.vmss_autoscale_id}"
 }
+output "coredb_lb_id" {
+  value = "${module.coredb.lb_id}"
+}
 output "coredb_vmss_id" {
   value = "${module.coredb.vmss_id}"
 }
@@ -456,6 +463,18 @@ output "coredb_vmss_principal_id" {
 }
 output "coredb_vmss_autoscale_id" {
   value = "${module.coredb.vmss_autoscale_id}"
+}
+output "mds_lb_id" {
+  value = "${module.mds.lb_id}"
+}
+output "mds_vmss_id" {
+  value = "${module.mds.vmss_id}"
+}
+output "mds_vmss_principal_id" {
+  value = "${module.mds.vmss_principal_id}"
+}
+output "mds_vmss_autoscale_id" {
+  value = "${module.mds.vmss_autoscale_id}"
 }
 output "consul_vmss_id" {
   value = "${module.consul.vmss_id}"

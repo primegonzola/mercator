@@ -138,14 +138,22 @@ if [[ "${DEPLOYMENT_MODEL}" == "arm" ]]; then
     KEY_VAULT_URI=$(echo "${MAIN_OUTPUT}" | jq -r '.properties.outputs.keyVaultUri.value')
     
     # get the api subsystem settings
+    API_LB_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.properties.outputs.apiLoadBalancerId.value')
     API_VMSS_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.properties.outputs.apiVmssId.value')
     API_VMSS_PRINCIPAL_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.properties.outputs.apiVmssPrincipalId.value')
     API_VMSS_AUTOSCALE_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.properties.outputs.apiVmssAutoScaleId.value')
 
     # get the coredb subsystem settings
+    COREDB_LB_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.properties.outputs.coredbLoadBalancerId.value')
     COREDB_VMSS_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.properties.outputs.coredbVmssId.value')
     COREDB_VMSS_PRINCIPAL_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.properties.outputs.coredbVmssPrincipalId.value')
     COREDB_VMSS_AUTOSCALE_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.properties.outputs.coredbVmssAutoScaleId.value')
+
+    # get the mds subsystem settings
+    MDS_LB_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.properties.outputs.mdsLoadBalancerId.value')
+    MDS_VMSS_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.properties.outputs.mdsVmssId.value')
+    MDS_VMSS_PRINCIPAL_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.properties.outputs.mdsVmssPrincipalId.value')
+    MDS_VMSS_AUTOSCALE_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.properties.outputs.mdsVmssAutoScaleId.value')
 
     # get the consul subsystem settings
     CONSUL_VMSS_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.properties.outputs.consulVmssId.value')
@@ -196,13 +204,20 @@ if [[ "${DEPLOYMENT_MODEL}" == "tf" ]]; then
     KEY_VAULT_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.key_vault_id.value')
     KEY_VAULT_URI=$(echo "${MAIN_OUTPUT}" | jq -r '.key_vault_uri.value')
 
+    API_LB_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.api_lb_id.value')
     API_VMSS_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.api_vmss_id.value')
     API_VMSS_PRINCIPAL_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.api_vmss_principal_id.value')
     API_VMSS_AUTOSCALE_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.api_vmss_autoscale_id.value')
 
+    COREDB_LB_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.coredb_lb_id.value')
     COREDB_VMSS_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.coredb_vmss_id.value')
     COREDB_VMSS_PRINCIPAL_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.coredb_vmss_principal_id.value')
     COREDB_VMSS_AUTOSCALE_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.coredb_vmss_autoscale_id.value')
+
+    MDS_LB_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.mds_lb_id.value')
+    MDS_VMSS_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.mds_vmss_id.value')
+    MDS_VMSS_PRINCIPAL_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.mds_vmss_principal_id.value')
+    MDS_VMSS_AUTOSCALE_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.mds_vmss_autoscale_id.value')
 
     CONSUL_VMSS_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.consul_vmss_id.value')
     CONSUL_VMSS_PRINCIPAL_ID=$(echo "${MAIN_OUTPUT}" | jq -r '.consul_vmss_principal_id.value')
@@ -225,6 +240,10 @@ az role assignment create --assignee-object-id ${COREDB_VMSS_PRINCIPAL_ID} --sco
 az role assignment create --assignee-object-id ${COREDB_VMSS_PRINCIPAL_ID} --scope ${KEY_VAULT_ID} --role Contributor
 az role assignment create --assignee-object-id ${COREDB_VMSS_PRINCIPAL_ID} --scope ${STORAGE_ACCOUNT_ID} --role Contributor
 
+az role assignment create --assignee-object-id ${MDS_VMSS_PRINCIPAL_ID} --scope ${STATUS_TOPIC_ID} --role Contributor
+az role assignment create --assignee-object-id ${MDS_VMSS_PRINCIPAL_ID} --scope ${KEY_VAULT_ID} --role Contributor
+az role assignment create --assignee-object-id ${MDS_VMSS_PRINCIPAL_ID} --scope ${STORAGE_ACCOUNT_ID} --role Contributor
+
 az role assignment create --assignee-object-id ${CONSUL_VMSS_PRINCIPAL_ID} --scope ${STATUS_TOPIC_ID} --role Contributor
 az role assignment create --assignee-object-id ${CONSUL_VMSS_PRINCIPAL_ID} --scope ${KEY_VAULT_ID} --role Contributor
 az role assignment create --assignee-object-id ${CONSUL_VMSS_PRINCIPAL_ID} --scope ${STORAGE_ACCOUNT_ID} --role Contributor
@@ -243,6 +262,10 @@ az vmss scale --new-capacity 2 --no-wait --ids ${API_VMSS_ID}
 
 display_progress "Scaling coredb"
 az monitor autoscale update --ids ${COREDB_VMSS_AUTOSCALE_ID} --count 2
+az vmss scale --new-capacity 2 --no-wait --ids ${COREDB_VMSS_ID}
+
+display_progress "Scaling mds"
+az monitor autoscale update --ids ${MDS_VMSS_AUTOSCALE_ID} --count 2
 az vmss scale --new-capacity 2 --no-wait --ids ${COREDB_VMSS_ID}
 
 # add to current list to be monitored

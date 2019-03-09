@@ -237,6 +237,9 @@ resource "azurerm_autoscale_setting" "host" {
     }
   }
 }
+output "lb_id" {
+  value = "${azurerm_lb.host.id}"
+}
 output "vmss_id" {
   value = "${local.vmss_id}"
 }

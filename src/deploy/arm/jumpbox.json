@@ -22,6 +22,9 @@
             "metadata": {
                 "description": "Admin password on all VMs."
             }
+        },
+        "imageUri": {
+            "type": "string"
         }
     },
     "variables": {
@@ -32,9 +35,28 @@
         "nicName": "[concat('jumpbox-nic-', variables('uniqueNameFix'))]",
         "nsgName": "[concat('jumpbox-nsg-', variables('uniqueNameFix'))]",
         "dskName": "[concat('jumpbox-dsk-', variables('uniqueNameFix'))]",
-        "subnetId": "[parameters('subnetId')]"
+        "imageName": "[concat('jumpbox-img-', variables('uniqueNameFix'))]",
+        "subnetId": "[parameters('subnetId')]",
+        "imageUri": "[parameters('imageUri')]"
     },
     "resources": [
+        {
+            "type": "Microsoft.Compute/images",
+            "apiVersion": "[variables('apiVersions').images]",
+            "name": "[variables('imageName')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "storageProfile": {
+                    "osDisk": {
+                        "osType": "Linux",
+                        "osState": "Generalized",
+                        "blobUri": "[variables('imageUri')]",
+                        "caching": "ReadWrite",
+                        "storageAccountType": "Standard_LRS"
+                    }
+                }
+            }
+        },        
         {
             "type": "Microsoft.Compute/virtualMachines",
             "name": "[variables('vmName')]",
@@ -46,13 +68,9 @@
                 },
                 "storageProfile": {
                     "imageReference": {
-                        "publisher": "Canonical",
-                        "offer": "UbuntuServer",
-                        "sku": "16.04-LTS",
-                        "version": "latest"
+                        "id": "[resourceId('Microsoft.Compute/images', variables('imageName'))]"
                     },
                     "osDisk": {
-                        "osType": "Linux",
                         "name": "[variables('dskName')]",
                         "createOption": "FromImage"
                     }
@@ -71,6 +89,7 @@
                 }
             },
             "dependsOn": [
+                "[concat('Microsoft.Compute/images/', variables('imageName'))]",
                 "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName'))]"
             ]
         },

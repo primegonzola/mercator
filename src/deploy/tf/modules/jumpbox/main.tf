@@ -34,6 +34,21 @@ variable "boot_storage_account_sas" {
 variable "subnet_id" {
   type = "string"
 }
+variable "custom_image_uri" {
+  type = "string"
+}
+
+resource "azurerm_image" "jumpbox" {
+  name                  = "jumpbox-img-${var.unique}"
+  resource_group_name   = "${var.resource_group}"
+  location              = "${var.location}"
+  os_disk {
+    os_type               = "Linux"
+    os_state              = "Generalized"
+    blob_uri              = "${var.custom_image_uri}"
+    caching               = "ReadWrite"
+  }
+}
 
 resource "azurerm_public_ip" "jumpbox" {
   name                            = "jumpbox-ip-${var.unique}"
@@ -87,10 +102,7 @@ resource "azurerm_virtual_machine" "main" {
   delete_data_disks_on_termination = true
 
   storage_image_reference {
-    publisher           = "OpenLogic"
-    offer               = "CentOS"
-    sku                 = "7.3"
-    version             = "latest"
+    id  = "${azurerm_image.jumpbox.id}"
   }
   storage_os_disk {
     name              = "jumpbox-dsk-${var.unique}"
