@@ -58,7 +58,7 @@ resource "azurerm_public_ip" "jumpbox" {
   domain_name_label               = "jumpbox-ip-${var.unique}"
 }
 
-resource "azurerm_network_security_group" "jumbox" {
+resource "azurerm_network_security_group" "jumpbox" {
   name                        = "jumpbox-nsg-${var.unique}"
   resource_group_name         = "${var.resource_group}"
   location                    = "${var.location}"
@@ -79,7 +79,7 @@ resource "azurerm_network_interface" "jumpbox" {
   name                        = "jumpbox-nic-${var.unique}"
   resource_group_name         = "${var.resource_group}"
   location                    = "${var.location}"
-  network_security_group_id   = "${azurerm_network_security_group.jumbox.id}"
+  network_security_group_id   = "${azurerm_network_security_group.jumpbox.id}"
   ip_configuration {
     name                          = "jumpbox-ipc-${var.unique}"
     subnet_id                     = "${var.subnet_id}"
