@@ -6,13 +6,12 @@ SCHEDULED_EVENTS_API_URI=http://169.254.169.254/metadata/scheduledevents?api-ver
 # get the meta data 
 META_DATA=$(curl -X GET -H "Metadata:true" ${SCHEDULED_EVENTS_API_URI})
 # get events
-META_DATA=$(cat ./meta-data.json)
 META_DATA_EVENTS=$(echo ${META_DATA} | jq -r '.Events')
 META_DATA_EVENTS_LENGTH=$(echo ${META_DATA} | jq -r '.Events | length')
 
 # loop over events
-for ((index=0;index<${META_DATA_EVENTS_LENGTH};index++)); do
-    EVENT_DATA=$(echo $META_DATA_EVENTS | jq --arg index $index '.[$index|tonumber]')
+for ((i=0;i<${META_DATA_EVENTS_LENGTH};i++)); do
+    EVENT_DATA=$(echo $META_DATA_EVENTS | jq --arg i $i '.[$i|tonumber]')
     # get event data
     EVENT_ID=$(echo ${EVENT_DATA} | jq -r '.EventId')
     EVENT_TYPE=$(echo ${EVENT_DATA} | jq -r '.EventType')
@@ -22,9 +21,9 @@ for ((index=0;index<${META_DATA_EVENTS_LENGTH};index++)); do
     
     # check if termination event
     if [[ "${EVENT_TYPE}" == "Terminate" ]]; then
-        for ((rindex=0;rindex<${EVENT_RESOURCES_LENGTH};rindex++)); do
+        for ((j=0;j<${EVENT_RESOURCES_LENGTH};j++)); do
             # get the resource
-            EVENT_RESOURCE=$(echo $EVENT_RESOURCES | jq --arg rindex $rindex '.[$rindex|tonumber]')
+            EVENT_RESOURCE=$(echo $EVENT_RESOURCES | jq --arg j $j '.[$j|tonumber]')
             # check if this machine
             if [[ "${EVENT_RESOURCE}" == "${HOST_NAME}" ]]; then
     

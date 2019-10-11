@@ -39,9 +39,6 @@ MDS_DISK_0_NAME=mds-${HOST_NAME}-0-dsk
 
 # check if running init
 if [[ "${ACTION}" == "init" ]]; then
-    # install azure cli
-    curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-
     # login using access token from msi
     az login --identity
 
@@ -51,17 +48,27 @@ if [[ "${ACTION}" == "init" ]]; then
     # resolve instance id
     VMSS_VM_INSTANCE_ID=$(hostname_to_vmid ${HOST_NAME})
 
-    # attach disk
-    az vmss disk attach --lun --disk ${MDS_DISK_0_NAME} --instance-id ${VMSS_VM_INSTANCE_ID} --resource-group ${MDS_RESOURCE_GROUP}
+    # attach disk to lun 0
+    az vmss disk attach --resource-group ${MDS_RESOURCE_GROUP} --vmss-name ${MDS_VMSS_NAME} --instance-id ${VMSS_VM_INSTANCE_ID} --disk ${MDS_DISK_0_NAME} --lun 0  
+
+    # prep data dir
+    mkdir /datadisk0
+
+    # mount
+    mount /dev/sdc1 /datadisk0
 
 # check if terminating
 elif [[ "${ACTION}" == "terminate" ]]; then
+    # unmount
+    umount /dev/sdc1
+
     # login using access token from msi
     az login --identity
 
-    # dettach disk
-    az vmss disk detach --lun 0 --instance-id ${VMSS_VM_INSTANCE_ID} --resource-group ${MDS_RESOURCE_GROUP}
+    # detach disk
+    az vmss disk detach --resource-group ${MDS_RESOURCE_GROUP} --vmss-name ${MDS_VMSS_NAME} --instance-id ${VMSS_VM_INSTANCE_ID} --lun 0  
 
     # delete the disk
-    az disk delete -n ${MDS_DISK_0_NAME} -g ${MDS_RESOURCE_GROUP}
+    az disk delete -n ${MDS_DISK_0_NAME} -g ${MDS_RESOURCE_GROUP} -y
 fi
+

@@ -49,7 +49,10 @@ variable "storage_account_id" {
 variable "status_topic_id" {
   type = "string"
 }
-variable "custom_image_uri" {
+variable "os_image_uri" {
+  type = "string"
+}
+variable "data_image_uri" {
   type = "string"
 }
 variable "key_vault_id" {
@@ -141,7 +144,7 @@ resource "azurerm_image" "host" {
   os_disk {
     os_type               = "Linux"
     os_state              = "Generalized"
-    blob_uri              = "${var.custom_image_uri}"
+    blob_uri              = "${var.os_image_uri}"
     caching               = "ReadWrite"
   }
 }
@@ -215,7 +218,7 @@ resource "azurerm_virtual_machine_scale_set" "host" {
     settings                      = <<SETTINGS
     {
         "fileUris": [ "${local.file_download_uri}", "${local.file_init_uri}" ],
-        "commandToExecute": "./host-init.sh \"${var.project_name}\" \"${var.boot_storage_account_name}\" \"${var.boot_storage_account_key}\" \"${var.boot_storage_account_sas}\" \"VirtualMachineScaleSet\" \"${local.vmss_id}\" \"${var.host_role}\" \"${var.status_topic_id}\" \"${var.storage_account_id}\" \"${var.key_vault_id}\" \"${local.consul_vmss_id}\" \"${var.consul_tenant_id}\" \"${var.consul_client_id}\" \"${var.consul_client_key}\""
+        "commandToExecute": "./host-init.sh \"${var.project_name}\" \"${var.boot_storage_account_name}\" \"${var.boot_storage_account_key}\" \"${var.boot_storage_account_sas}\" \"VirtualMachineScaleSet\" \"${local.vmss_id}\" \"${var.host_role}\" \"${var.status_topic_id}\" \"${var.storage_account_id}\" \"${var.key_vault_id}\" \"${local.consul_vmss_id}\" \"${var.consul_tenant_id}\" \"${var.consul_client_id}\" \"${var.consul_client_key}\" \"${var.data_image_uri}\""
     }
 SETTINGS
   }

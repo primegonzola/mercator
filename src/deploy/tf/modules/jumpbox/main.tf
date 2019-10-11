@@ -34,7 +34,7 @@ variable "boot_storage_account_sas" {
 variable "subnet_id" {
   type = "string"
 }
-variable "custom_image_uri" {
+variable "os_image_uri" {
   type = "string"
 }
 
@@ -45,7 +45,7 @@ resource "azurerm_image" "jumpbox" {
   os_disk {
     os_type               = "Linux"
     os_state              = "Generalized"
-    blob_uri              = "${var.custom_image_uri}"
+    blob_uri              = "${var.os_image_uri}"
     caching               = "ReadWrite"
   }
 }

@@ -37,7 +37,10 @@ variable "boot_storage_account_key" {
 variable "boot_storage_account_sas" {
   type = "string"
 }
-variable "custom_image_uri" {
+variable "os_image_uri" {
+  type = "string"
+}
+variable "data_image_uri" {
   type = "string"
 }
 variable "consul_tenant_id" {
@@ -291,7 +294,7 @@ module "jumpbox" {
   boot_storage_account_key  = "${var.boot_storage_account_key}"
   boot_storage_account_sas  = "${var.boot_storage_account_sas}"
   subnet_id                 = "${azurerm_subnet.jumpbox.id}",
-  custom_image_uri          = "${var.custom_image_uri}"
+  os_image_uri              = "${var.os_image_uri}"
 }
 
 module "api" {
@@ -314,7 +317,8 @@ module "api" {
   analytics_workspace_id    = "${azurerm_log_analytics_workspace.analytics.workspace_id}" 
   analytics_workspace_key   = "${azurerm_log_analytics_workspace.analytics.primary_shared_key}" 
   key_vault_id              = "${local.key_vault_id}"
-  custom_image_uri          = "${var.custom_image_uri}"
+  os_image_uri              = "${var.os_image_uri}"
+  data_image_uri            = "${var.data_image_uri}"
   storage_account_id        = "${azurerm_storage_account.storage.id}"
   status_topic_id           = "${azurerm_eventgrid_topic.status.id}"
   load_balanced             = "true"
@@ -346,7 +350,8 @@ module "coredb" {
   analytics_workspace_id    = "${azurerm_log_analytics_workspace.analytics.workspace_id}" 
   analytics_workspace_key   = "${azurerm_log_analytics_workspace.analytics.primary_shared_key}" 
   key_vault_id              = "${local.key_vault_id}"
-  custom_image_uri          = "${var.custom_image_uri}"
+  os_image_uri              = "${var.os_image_uri}"
+  data_image_uri            = "${var.data_image_uri}"
   storage_account_id        = "${azurerm_storage_account.storage.id}"
   status_topic_id           = "${azurerm_eventgrid_topic.status.id}"
   load_balanced             = "true"
@@ -378,7 +383,8 @@ module "mds" {
   analytics_workspace_id    = "${azurerm_log_analytics_workspace.analytics.workspace_id}" 
   analytics_workspace_key   = "${azurerm_log_analytics_workspace.analytics.primary_shared_key}" 
   key_vault_id              = "${local.key_vault_id}"
-  custom_image_uri          = "${var.custom_image_uri}"
+  os_image_uri              = "${var.os_image_uri}"
+  data_image_uri            = "${var.data_image_uri}"
   storage_account_id        = "${azurerm_storage_account.storage.id}"
   status_topic_id           = "${azurerm_eventgrid_topic.status.id}"
   load_balanced             = "true"
@@ -410,7 +416,8 @@ module "consul" {
   analytics_workspace_id    = "${azurerm_log_analytics_workspace.analytics.workspace_id}" 
   analytics_workspace_key   = "${azurerm_log_analytics_workspace.analytics.primary_shared_key}" 
   key_vault_id              = "${local.key_vault_id}"
-  custom_image_uri          = "${var.custom_image_uri}"
+  os_image_uri              = "${var.os_image_uri}"
+  data_image_uri            = "${var.data_image_uri}"
   storage_account_id        = "${azurerm_storage_account.storage.id}"
   status_topic_id           = "${azurerm_eventgrid_topic.status.id}"
   load_balanced             = "true"

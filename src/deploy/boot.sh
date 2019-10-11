@@ -271,8 +271,10 @@ az monitor autoscale update --ids ${COREDB_VMSS_AUTOSCALE_ID} --count 2
 az vmss scale --new-capacity 2 --no-wait --ids ${COREDB_VMSS_ID}
 
 display_progress "Scaling mds"
+az monitor autoscale update --ids ${MDS_VMSS_AUTOSCALE_ID} --enabled false
 az monitor autoscale update --ids ${MDS_VMSS_AUTOSCALE_ID} --count 2
 az vmss scale --new-capacity 2 --no-wait --ids ${COREDB_VMSS_ID}
+az monitor autoscale update --ids ${MDS_VMSS_AUTOSCALE_ID} --enabled true
 
 # add to current list to be monitored
 display_progress "Enabling key vault for services"
