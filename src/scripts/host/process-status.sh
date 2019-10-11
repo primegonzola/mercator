@@ -1,7 +1,10 @@
 #!/bin/bash
-# auto healing
-HOST_STATUS_SERVICE_FILE=/etc/systemd/system/${PROJECT_NAME}-host-status.service
-cat <<-EOF > ${HOST_STATUS_SERVICE_FILE}
+ACTION=${1}
+# check if running init
+if [[ "${ACTION}" == "init" ]]; then
+    # auto healing
+    HOST_STATUS_SERVICE_FILE=/etc/systemd/system/${PROJECT_NAME}-host-status.service
+    cat <<-EOF > ${HOST_STATUS_SERVICE_FILE}
 [Unit]
 Description=run host status 
 
@@ -16,6 +19,7 @@ ExecStart=${ROOT_DIR}/host/status.sh "${PROJECT_NAME}" "${ROOT_DIR}" "${HOST_TYP
 WantedBy=multi-user.target
 EOF
 
-# enable service
-systemctl daemon-reload
-systemctl enable --now ${PROJECT_NAME}-host-status.service
+    # enable service
+    systemctl daemon-reload
+    systemctl enable --now ${PROJECT_NAME}-host-status.service
+fi

@@ -35,7 +35,10 @@
     "deploymentPrincipalObjectId": {
       "type": "securestring"
     },
-    "customImageUri": {
+    "osImageUri": {
+      "type": "string"
+    },
+    "dataImageUri": {
       "type": "string"
     },
     "consulTenantId": {
@@ -57,7 +60,8 @@
     "webHookUri": "none",
     "keyVaultName": "[concat('vaultkv',variables('uniqueNameFix'))]",
     "keyVaultId": "[resourceId('Microsoft.KeyVault/vaults/', variables('keyVaultName'))]",
-    "customImageUri": "[parameters('customImageUri')]",
+    "osImageUri": "[parameters('osImageUri')]",
+    "dataImageUri": "[parameters('dataImageUri')]",
     "adminUserName": "[parameters('adminUserName')]",
     "adminPassword": "[parameters('adminPassword')]",
     "bootstrapStorageAccountName": "[parameters('bootstrapStorageAccount')]",
@@ -268,8 +272,11 @@
           "adminPassword": {
             "value": "[variables('adminPassword')]"
           },
-          "imageUri": {
-            "value": "[variables('customImageUri')]"
+          "osImageUri": {
+            "value": "[variables('osImageUri')]"
+          },
+          "dataImageUri": {
+            "value": "[variables('dataImageUri')]"
           }
         }
       }
@@ -331,8 +338,11 @@
           "storageAccountId": {
             "value": "[reference('storage').outputs.storageAccountId.value]"
           },
-          "imageUri": {
-            "value": "[variables('customImageUri')]"
+          "osImageUri": {
+            "value": "[variables('osImageUri')]"
+          },
+          "dataImageUri": {
+            "value": "[variables('dataImageUri')]"
           },
           "keyVaultId": {
             "value": "[variables('keyVaultId')]"
@@ -409,8 +419,11 @@
           "storageAccountId": {
             "value": "[reference('storage').outputs.storageAccountId.value]"
           },
-          "imageUri": {
-            "value": "[variables('customImageUri')]"
+          "osImageUri": {
+            "value": "[variables('osImageUri')]"
+          },
+          "dataImageUri": {
+            "value": "[variables('dataImageUri')]"
           },
           "keyVaultId": {
             "value": "[variables('keyVaultId')]"
@@ -493,8 +506,11 @@
           "storageAccountId": {
             "value": "[reference('storage').outputs.storageAccountId.value]"
           },
-          "imageUri": {
-            "value": "[variables('customImageUri')]"
+          "osImageUri": {
+            "value": "[variables('osImageUri')]"
+          },
+          "dataImageUri": {
+            "value": "[variables('dataImageUri')]"
           },
           "keyVaultId": {
             "value": "[variables('keyVaultId')]"
@@ -577,8 +593,11 @@
           "storageAccountId": {
             "value": "[reference('storage').outputs.storageAccountId.value]"
           },
-          "imageUri": {
-            "value": "[variables('customImageUri')]"
+          "osImageUri": {
+            "value": "[variables('osImageUri')]"
+          },
+          "dataImageUri": {
+            "value": "[variables('dataImageUri')]"
           },
           "keyVaultId": {
             "value": "[variables('keyVaultId')]"

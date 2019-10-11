@@ -65,8 +65,11 @@
     "adminPassword": {
       "value": "Dummy2PassWord!"
     },
-    "customImageUri": {
-      "value": "<customImageUri>"
+    "osImageUri": {
+      "value": "<osImageUri>"
+    },
+    "dataImageUri": {
+      "value": "<dataImageUri>"
     },
     "consulTenantId": {
       "value": "<consulTenantId>"

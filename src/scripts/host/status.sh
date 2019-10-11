@@ -21,6 +21,9 @@ while true; do
 	# Announce the current status
 	. ${ROOT_DIR}/host/announce.sh
 
+	# check for termination
+	. ${ROOT_DIR}/host/terminate.sh
+
 	# notify watchdog
 	systemd-notify --status="Waiting for next invocation"
 

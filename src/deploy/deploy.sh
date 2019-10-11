@@ -48,7 +48,8 @@ BUILD_MODE="default"
 PROJECT_NAME="mercator"
 OPERATION_MODE="default"
 DEPLOYMENT_MODEL="arm"
-CUSTOM_IMAGE_URI="none"
+OS_IMAGE_URI="none"
+DATA_IMAGE_URI="none"
 
 # parse the argumens
 while true; do
@@ -65,7 +66,8 @@ while true; do
     -v | --verbose ) BUILD_MODE="verbose"; shift ; shift ;;
     -dev | --development ) OPERATION_MODE="development"; shift ;;
     -dm | --deployment-model ) DEPLOYMENT_MODEL="$2"; shift ; shift ;;
-    -ciu | --custom-image-uri ) CUSTOM_IMAGE_URI="$2"; shift ; shift ;;
+    -oiu | --os-image-uri ) OS_IMAGE_URI="$2"; shift ; shift ;;
+    -diu | --data-image-uri ) DATA_IMAGE_URI="$2"; shift ; shift ;;
     -- ) shift; break ;;
     * ) break ;;
   esac
@@ -167,6 +169,12 @@ dos2unix -q ${OUTPUT_DIR}/deploy/*.*
 # entering deployment environment
 display_progress "Entering deployment environment"
 
+# extract principal object id using caller login context
+SERVICE_PRINCIPAL_OID=$(az ad sp show --id ${SERVICE_PRINCIPAL_ID} | jq -r '.objectId')
+
+# give owner rights using caller login context
+az role assignment create --assignee-object-id ${SERVICE_PRINCIPAL_OID} --role owner
+
 # create a different config file for azure cli so no conflict with existing user profile
 export AZURE_CONFIG_DIR=${OUTPUT_DIR}/deploy/azure-configure
 
@@ -175,9 +183,6 @@ az login --service-principal -t ${TENANT_ID} -u ${SERVICE_PRINCIPAL_ID} -p ${SER
 
 # select specified subscription
 az account set --subscription ${SUBSCRIPTION_ID}
-
-# extract principal object id
-SERVICE_PRINCIPAL_OID=$(az ad sp show --id ${SERVICE_PRINCIPAL_ID} | jq -r '.objectId')
 
 # pass the environment
 cat <<-EOF > ${OUTPUT_DIR}/deploy/environment.sh
@@ -195,15 +200,25 @@ UNIQUE_NAME_FIX="${UNIQUE_NAME_FIX}"
 SERVICE_PRINCIPAL_ID="${SERVICE_PRINCIPAL_ID}"
 SERVICE_PRINCIPAL_KEY="${SERVICE_PRINCIPAL_KEY}"
 SERVICE_PRINCIPAL_OID="${SERVICE_PRINCIPAL_OID}"
-CUSTOM_IMAGE_URI="${CUSTOM_IMAGE_URI}"
+OS_IMAGE_URI="${OS_IMAGE_URI}"
+DATA_IMAGE_URI="${DATA_IMAGE_URI}"
 EOF
 
 # boot system
 ${OUTPUT_DIR}/deploy/boot.sh
+
+# do explicit logout
+az logout
+
+# restore config
+unset AZURE_CONFIG_DIR
+
+# removing owner rights
+az role assignment delete --assignee ${SERVICE_PRINCIPAL_ID} --role Owner
+
 # entering deployment environment
 display_progress "Leaving deployment environment"
-# do explicit login
-az logout
+
 # clean up
 popd >/dev/null
 

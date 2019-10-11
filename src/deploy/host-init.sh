@@ -13,6 +13,7 @@ CONSUL_VMSS_ID="${11}"
 CONSUL_TENANT_ID="${12}"
 CONSUL_CLIENT_ID="${13}"
 CONSUL_CLIENT_KEY="${14}"
+DATA_IMAGE_URI="${15}"
 
 # define root of all evil
 ROOT_DIR=/opt/${PROJECT_NAME}
@@ -61,7 +62,8 @@ sed --in-place=.bak \
 	-e "s|<CONSUL_TENANT_ID>|${CONSUL_TENANT_ID}|" \
 	-e "s|<CONSUL_CLIENT_ID>|${CONSUL_CLIENT_ID}|" \
 	-e "s|<CONSUL_CLIENT_KEY>|${CONSUL_CLIENT_KEY}|" \
-	${ROOT_DIR}/host/init.sh
+	-e "s|<DATA_IMAGE_URI>|${DATA_IMAGE_URI}|" \
+	${ROOT_DIR}/host/process.sh
 
-# execute directly
-${ROOT_DIR}/host/init.sh
+# execute directly the init
+${ROOT_DIR}/host/process.sh "init"

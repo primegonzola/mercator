@@ -23,7 +23,10 @@
                 "description": "Admin password on all VMs."
             }
         },
-        "imageUri": {
+        "osImageUri": {
+            "type": "string"
+        },
+        "dataImageUri": {
             "type": "string"
         }
     },
@@ -35,22 +38,23 @@
         "nicName": "[concat('jumpbox-nic-', variables('uniqueNameFix'))]",
         "nsgName": "[concat('jumpbox-nsg-', variables('uniqueNameFix'))]",
         "dskName": "[concat('jumpbox-dsk-', variables('uniqueNameFix'))]",
-        "imageName": "[concat('jumpbox-img-', variables('uniqueNameFix'))]",
+        "osImageName": "[concat('jumpbox-os-img-', variables('uniqueNameFix'))]",
         "subnetId": "[parameters('subnetId')]",
-        "imageUri": "[parameters('imageUri')]"
+        "osImageUri": "[parameters('osImageUri')]",
+        "dataImageUri": "[parameters('dataImageUri')]"
     },
     "resources": [
         {
             "type": "Microsoft.Compute/images",
             "apiVersion": "[variables('apiVersions').images]",
-            "name": "[variables('imageName')]",
+            "name": "[variables('osImageName')]",
             "location": "[resourceGroup().location]",
             "properties": {
                 "storageProfile": {
                     "osDisk": {
                         "osType": "Linux",
                         "osState": "Generalized",
-                        "blobUri": "[variables('imageUri')]",
+                        "blobUri": "[variables('osImageUri')]",
                         "caching": "ReadWrite",
                         "storageAccountType": "Standard_LRS"
                     }
@@ -68,7 +72,7 @@
                 },
                 "storageProfile": {
                     "imageReference": {
-                        "id": "[resourceId('Microsoft.Compute/images', variables('imageName'))]"
+                        "id": "[resourceId('Microsoft.Compute/images', variables('osImageName'))]"
                     },
                     "osDisk": {
                         "name": "[variables('dskName')]",
@@ -89,7 +93,7 @@
                 }
             },
             "dependsOn": [
-                "[concat('Microsoft.Compute/images/', variables('imageName'))]",
+                "[concat('Microsoft.Compute/images/', variables('osImageName'))]",
                 "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName'))]"
             ]
         },

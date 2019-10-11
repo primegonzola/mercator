@@ -79,7 +79,10 @@
             },
             "maxValue": 8
         },
-        "imageUri": {
+        "osImageUri": {
+            "type": "string"
+        },
+        "dataImageUri": {
             "type": "string"
         },
         "loadbalanced": {
@@ -106,7 +109,7 @@
         },
         "consulClientKey": {
             "type": "string"
-        }        
+        }
     },
     "variables": {
         "projectName": "[parameters('projectName')]",
@@ -132,29 +135,30 @@
         "statusTopicName": "[split(variables('statusTopicId'),'/')[8]]",
         "storageAccountId": "[parameters('storageAccountId')]",
         "diskName": "[concat(variables('hostRole'), '-dsk-', variables('uniqueNameFix'))]",
-        "imageName": "[concat(variables('hostRole'), '-img-', variables('uniqueNameFix'))]",
+        "osImageName": "[concat(variables('hostRole'), '-os-img-', variables('uniqueNameFix'))]",
         "keyVaultId": "[parameters('keyVaultId')]",
-        "imageUri": "[parameters('imageUri')]",
+        "osImageUri": "[parameters('osImageUri')]",
+        "dataImageUri": "[parameters('dataImageUri')]",
         "healthPath": "[parameters('healthPath')]",
         "healthPort": "[parameters('healthPort')]",
         "consulVmssId": "[if(bool(equals(parameters('consulVmssId'), 'none')), variables('vmssId'), parameters('consulVmssId'))]",
         "consulTenantId": "[parameters('consulTenantId')]",
         "consulClientId": "[parameters('consulClientId')]",
-        "consulClientKey": "[parameters('consulClientKey')]", 
+        "consulClientKey": "[parameters('consulClientKey')]",
         "singleQuote": "'"
     },
     "resources": [
         {
             "type": "Microsoft.Compute/images",
             "apiVersion": "[variables('apiVersions').images]",
-            "name": "[variables('imageName')]",
+            "name": "[variables('osImageName')]",
             "location": "[resourceGroup().location]",
             "properties": {
                 "storageProfile": {
                     "osDisk": {
                         "osType": "Linux",
                         "osState": "Generalized",
-                        "blobUri": "[variables('imageUri')]",
+                        "blobUri": "[variables('osImageUri')]",
                         "caching": "ReadWrite",
                         "storageAccountType": "Premium_LRS"
                     }
@@ -236,21 +240,27 @@
                 "type": "SystemAssigned"
             },
             "dependsOn": [
-                "[concat('Microsoft.Compute/images/', variables('imageName'))]",
+                "[concat('Microsoft.Compute/images/', variables('osImageName'))]",
                 "[resourceId('Microsoft.Network/loadBalancers',variables('lbName'))]"
             ],
             "tags": {
                 "scaleSetName": "[variables('vmssName')]"
-            }, 
+            },
             "properties": {
                 "overprovision": false,
                 "upgradePolicy": {
                     "mode": "Automatic"
                 },
                 "virtualMachineProfile": {
+                    "scheduledEventsProfile": {
+                        "terminateNotificationProfile": {
+                            "enable": true,
+                            "notBeforeTimeout": "PT5M"
+                        }
+                    },
                     "storageProfile": {
                         "imageReference": {
-                            "id": "[resourceId('Microsoft.Compute/images', variables('imageName'))]"
+                            "id": "[resourceId('Microsoft.Compute/images', variables('osImageName'))]"
                         },
                         "osDisk": {
                             "createOption": "FromImage"
@@ -317,7 +327,7 @@
                                         ]
                                     },
                                     "protectedSettings": {
-                                        "commandToExecute": "[concat('./host-init.sh',' ',variables('singleQuote'), variables('projectName'),variables('singleQuote'),' ', variables('singleQuote'), parameters('bootstrapStorageAccountName'),variables('singleQuote'),' ',variables('singleQuote'), parameters('bootstrapStorageAccountKey'),variables('singleQuote'),' ',variables('singleQuote'), parameters('bootstrapStorageAccountSas'),variables('singleQuote'),' ', variables('singleQuote'), 'VirtualMachineScaleSet', variables('singleQuote'), ' ', variables('singleQuote'), variables('vmssId'), variables('singleQuote'), ' ', variables('singleQuote'), variables('hostRole'), variables('singleQuote'), ' ',variables('singleQuote'), parameters('statusTopicId'), variables('singleQuote'),' ',variables('singleQuote'),variables('storageAccountId'),variables('singleQuote'), ' ',variables('singleQuote'),variables('keyVaultId'),variables('singleQuote'),  ' ',variables('singleQuote'),variables('consulVmssId'),variables('singleQuote'),' ',variables('singleQuote'),variables('consulTenantId'),variables('singleQuote'), ' ',variables('singleQuote'),variables('consulClientId'),variables('singleQuote'), ' ',variables('singleQuote'),variables('consulClientKey'),variables('singleQuote'))]"
+                                        "commandToExecute": "[concat('./host-init.sh',' ',variables('singleQuote'), variables('projectName'),variables('singleQuote'),' ', variables('singleQuote'), parameters('bootstrapStorageAccountName'),variables('singleQuote'),' ',variables('singleQuote'), parameters('bootstrapStorageAccountKey'),variables('singleQuote'),' ',variables('singleQuote'), parameters('bootstrapStorageAccountSas'),variables('singleQuote'),' ', variables('singleQuote'), 'VirtualMachineScaleSet', variables('singleQuote'), ' ', variables('singleQuote'), variables('vmssId'), variables('singleQuote'), ' ', variables('singleQuote'), variables('hostRole'), variables('singleQuote'), ' ',variables('singleQuote'), parameters('statusTopicId'), variables('singleQuote'),' ',variables('singleQuote'),variables('storageAccountId'),variables('singleQuote'), ' ',variables('singleQuote'),variables('keyVaultId'),variables('singleQuote'),  ' ',variables('singleQuote'),variables('consulVmssId'),variables('singleQuote'),' ',variables('singleQuote'),variables('consulTenantId'),variables('singleQuote'), ' ',variables('singleQuote'),variables('consulClientId'),variables('singleQuote'), ' ',variables('singleQuote'),variables('consulClientKey'),variables('singleQuote'), ' ',variables('singleQuote'),variables('dataImageUri'),variables('singleQuote'))]"
                                     }
                                 }
                             }
@@ -340,7 +350,7 @@
                 "type": "SystemAssigned"
             },
             "dependsOn": [
-                "[concat('Microsoft.Compute/images/', variables('imageName'))]",
+                "[concat('Microsoft.Compute/images/', variables('osImageName'))]",
                 "[resourceId('Microsoft.Network/loadBalancers',variables('lbName'))]"
             ],
             "tags": {
@@ -352,9 +362,15 @@
                     "mode": "Automatic"
                 },
                 "virtualMachineProfile": {
+                    "scheduledEventsProfile": {
+                        "terminateNotificationProfile": {
+                            "enable": true,
+                            "notBeforeTimeout": "PT5M"
+                        }
+                    },
                     "storageProfile": {
                         "imageReference": {
-                            "id": "[resourceId('Microsoft.Compute/images', variables('imageName'))]"
+                            "id": "[resourceId('Microsoft.Compute/images', variables('osImageName'))]"
                         },
                         "osDisk": {
                             "createOption": "FromImage"
@@ -416,7 +432,7 @@
                                         ]
                                     },
                                     "protectedSettings": {
-                                        "commandToExecute": "[concat('./host-init.sh',' ',variables('singleQuote'), variables('projectName'),variables('singleQuote'),' ', variables('singleQuote'), parameters('bootstrapStorageAccountName'),variables('singleQuote'),' ',variables('singleQuote'), parameters('bootstrapStorageAccountKey'),variables('singleQuote'),' ',variables('singleQuote'), parameters('bootstrapStorageAccountSas'),variables('singleQuote'),' ', variables('singleQuote'), 'VirtualMachineScaleSet', variables('singleQuote'), ' ', variables('singleQuote'), variables('vmssId'), variables('singleQuote'), ' ', variables('singleQuote'), variables('hostRole'), variables('singleQuote'), ' ',variables('singleQuote'), parameters('statusTopicId'), variables('singleQuote'),' ',variables('singleQuote'),variables('storageAccountId'),variables('singleQuote'), ' ',variables('singleQuote'),variables('keyVaultId'),variables('singleQuote'),  ' ',variables('singleQuote'),variables('consulVmssId'),variables('singleQuote'),' ',variables('singleQuote'),variables('consulTenantId'),variables('singleQuote'), ' ',variables('singleQuote'),variables('consulClientId'),variables('singleQuote'), ' ',variables('singleQuote'),variables('consulClientKey'),variables('singleQuote'))]"
+                                        "commandToExecute": "[concat('./host-init.sh',' ',variables('singleQuote'), variables('projectName'),variables('singleQuote'),' ', variables('singleQuote'), parameters('bootstrapStorageAccountName'),variables('singleQuote'),' ',variables('singleQuote'), parameters('bootstrapStorageAccountKey'),variables('singleQuote'),' ',variables('singleQuote'), parameters('bootstrapStorageAccountSas'),variables('singleQuote'),' ', variables('singleQuote'), 'VirtualMachineScaleSet', variables('singleQuote'), ' ', variables('singleQuote'), variables('vmssId'), variables('singleQuote'), ' ', variables('singleQuote'), variables('hostRole'), variables('singleQuote'), ' ',variables('singleQuote'), parameters('statusTopicId'), variables('singleQuote'),' ',variables('singleQuote'),variables('storageAccountId'),variables('singleQuote'), ' ',variables('singleQuote'),variables('keyVaultId'),variables('singleQuote'),  ' ',variables('singleQuote'),variables('consulVmssId'),variables('singleQuote'),' ',variables('singleQuote'),variables('consulTenantId'),variables('singleQuote'), ' ',variables('singleQuote'),variables('consulClientId'),variables('singleQuote'), ' ',variables('singleQuote'),variables('consulClientKey'),variables('singleQuote'), ' ',variables('singleQuote'),variables('dataImageUri'),variables('singleQuote'))]"
                                     }
                                 }
                             }

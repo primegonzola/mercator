@@ -35,7 +35,7 @@ BOOTSTRAP_STORAGE_SAS_TOKEN="?$(az storage container generate-sas -n bootstrap -
 ESCAPED_BOOTSTRAP_STORAGE_SAS_TOKEN=$(echo ${BOOTSTRAP_STORAGE_SAS_TOKEN} | sed -e "s|\&|\\\&|g")
 
 # check if we should create the image
-if [ "${CUSTOM_IMAGE_URI}" == "none" ]; then
+if [ "${OS_IMAGE_URI}" == "none" ]; then
     display_progress "Preparing custom image"
     # create image
     ./create-custom-image.sh \
@@ -48,7 +48,8 @@ if [ "${CUSTOM_IMAGE_URI}" == "none" ]; then
         "${RESOURCE_GROUP}" \
         "${LOCATION}" &> ${LOG_DIR}/custom-image.build.log
     # get output 
-    CUSTOM_IMAGE_URI="$(cat ./manifest.json | jq -r '.builds[0].artifact_id')"
+    OS_IMAGE_URI="$(cat ./manifest.json | jq -r '.builds[0].artifact_id')"
+    DATA_IMAGE_URI=${OS_IMAGE_URI/osDisk/dataDisk-0}    
 fi
 
 # get right url
@@ -116,7 +117,8 @@ if [[ "${DEPLOYMENT_MODEL}" == "arm" ]]; then
     -e "s|<bootstrapStorageAccountKey>|${BOOTSTRAP_STORAGE_ACCOUNT_KEY}|" \
     -e "s|<bootstrapStorageAccountSas>|${ESCAPED_BOOTSTRAP_STORAGE_SAS_TOKEN}|" \
     -e "s|<bootstrapStorageAccountUrl>|${BLOB_BASE_URL}|" \
-    -e "s|<customImageUri>|${CUSTOM_IMAGE_URI}|" \
+    -e "s|<osImageUri>|${OS_IMAGE_URI}|" \
+    -e "s|<dataImageUri>|${DATA_IMAGE_URI}|" \
     -e "s|<consulTenantId>|${CONSUL_TENANT_ID}|" \
     -e "s|<consulClientId>|${CONSUL_CLIENT_ID}|" \
     -e "s|<consulClientKey>|${CONSUL_CLIENT_KEY}|" \
@@ -184,7 +186,8 @@ if [[ "${DEPLOYMENT_MODEL}" == "tf" ]]; then
     -e "s|<boot-storage-account-name>|${BOOTSTRAP_STORAGE_ACCOUNT}|" \
     -e "s|<boot-storage-account-key>|${BOOTSTRAP_STORAGE_ACCOUNT_KEY}|" \
     -e "s|<boot-storage-account-sas>|${ESCAPED_BOOTSTRAP_STORAGE_SAS_TOKEN}|" \
-    -e "s|<custom-image-uri>|${CUSTOM_IMAGE_URI}|" \
+    -e "s|<os-image-uri>|${OS_IMAGE_URI}|" \
+    -e "s|<data-image-uri>|${DATA_IMAGE_URI}|" \
     -e "s|<consul-tenant-id>|${CONSUL_TENANT_ID}|" \
     -e "s|<consul-client-id>|${CONSUL_CLIENT_ID}|" \
     -e "s|<consul-client-key>|${CONSUL_CLIENT_KEY}|" \
@@ -250,6 +253,9 @@ az role assignment create --assignee-object-id ${CONSUL_VMSS_PRINCIPAL_ID} --sco
 
 az role assignment create --assignee-object-id ${SERVICES_PRINCIPAL_ID} --scope ${API_VMSS_ID} --role Contributor
 az role assignment create --assignee-object-id ${SERVICES_PRINCIPAL_ID} --scope ${API_VMSS_AUTOSCALE_ID} --role Contributor
+
+# hack to fix in order to be able to create/destroy a disk object dynamically
+az role assignment create --assignee-object-id ${MDS_VMSS_PRINCIPAL_ID} --resource-group ${RESOURCE_GROUP} --role Contributor
 
 # scaling host
 display_progress "Scaling consul"
