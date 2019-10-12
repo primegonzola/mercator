@@ -66,6 +66,21 @@
         {
             "execute_command": "echo '{{user `ssh_pass`}}' | {{ .Vars }} sudo -S -E sh '{{ .Path }}'",
             "inline": [
+                "mkfs.ext4 /dev/disk/azure/scsi1/lun0",
+                "UUID1=$(blkid -s UUID -o value /dev/disk/azure/scsi1/lun0)",
+                "echo \"UUID=$UUID1 /datadisk0 ext4 defaults,nofail 0 0\" >>/etc/fstab",
+                "mkdir /datadisk0",
+                "mount -a",
+                "echo 'hello data disk 0' > /datadisk0/mercator-no-content.txt"
+            ],
+            "inline_shebang": "/bin/sh -x",
+            "type": "shell",
+            "skip_clean": true,
+            "pause_before": "30s"
+        },
+        {
+            "execute_command": "echo '{{user `ssh_pass`}}' | {{ .Vars }} sudo -S -E sh '{{ .Path }}'",
+            "inline": [
                 "apt-get -y install apt-transport-https lsb-release software-properties-common dirmngr",
                 "export AZ_REPO=$(lsb_release -cs) && echo \"deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main\" | sudo tee /etc/apt/sources.list.d/azure-cli.list",
                 "apt-key --keyring /etc/apt/trusted.gpg.d/Microsoft.gpg adv --keyserver packages.microsoft.com --recv-keys BC528686B50D79E339D3721CEB3E94ADBE1229CF",
@@ -94,22 +109,6 @@
                 "git clone --branch v0.0.5 https://github.com/hashicorp/terraform-azurerm-consul.git /tmp/terraform-azurerm-consul",
                 "/tmp/terraform-azurerm-consul/modules/install-consul/install-consul --version {{user `consul_version`}}",
                 "/tmp/terraform-azurerm-consul/modules/install-dnsmasq/install-dnsmasq"
-            ],
-            "inline_shebang": "/bin/sh -x",
-            "type": "shell",
-            "skip_clean": true,
-            "pause_before": "30s"
-        },
-        {
-            "execute_command": "echo '{{user `ssh_pass`}}' | {{ .Vars }} sudo -S -E sh '{{ .Path }}'",
-            "inline": [
-                "umount /dev/sdc",
-                "printf 'o\nn\np\n1\n\n\nw\n' | sudo fdisk /dev/sdc",
-                "mkfs.ext4 /dev/sdc1",
-                "mkdir /datadisk0",
-                "mount /dev/sdc1 /datadisk0",
-                "echo 'hello data disk 0' > /datadisk0/mercator-no-content.txt",
-                "umount /dev/sdc1"
             ],
             "inline_shebang": "/bin/sh -x",
             "type": "shell",

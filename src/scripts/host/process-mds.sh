@@ -37,38 +37,38 @@ MDS_RESOURCE_GROUP=${PARTS[3]}
 MDS_SUBSCRIPTION_ID=${PARTS[1]}
 MDS_DISK_0_NAME=mds-${HOST_NAME}-0-dsk
 
+# login using access token from msi
+az login --identity
+
 # check if running init
 if [[ "${ACTION}" == "init" ]]; then
-    # login using access token from msi
-    az login --identity
+    # # create the disk
+    # az disk create -n ${MDS_DISK_0_NAME} -g ${MDS_RESOURCE_GROUP} --source ${DATA_IMAGE_URI}
 
-    # create the disk
-    az disk create -n ${MDS_DISK_0_NAME} -g ${MDS_RESOURCE_GROUP} --source ${DATA_IMAGE_URI}
+    # # resolve instance id
+    # VMSS_VM_INSTANCE_ID=$(hostname_to_vmid ${HOST_NAME})
+    # echo $VMSS_VM_INSTANCE_ID
 
-    # resolve instance id
-    VMSS_VM_INSTANCE_ID=$(hostname_to_vmid ${HOST_NAME})
+    # # getting disk id
+    # MDS_DISK_ID=$(az disk show -g ${MDS_RESOURCE_GROUP} -n ${MDS_DISK_0_NAME} --query 'id' -o tsv)
 
-    # attach disk to lun 0
-    az vmss disk attach --resource-group ${MDS_RESOURCE_GROUP} --vmss-name ${MDS_VMSS_NAME} --instance-id ${VMSS_VM_INSTANCE_ID} --disk ${MDS_DISK_0_NAME} --lun 0  
+    # # attach disk to lun 3
+    # az vmss disk attach --resource-group ${MDS_RESOURCE_GROUP} --vmss-name ${MDS_VMSS_NAME} --instance-id ${VMSS_VM_INSTANCE_ID} --disk ${MDS_DISK_ID} --lun 3  
 
     # prep data dir
-    mkdir /datadisk0
+    # mkdir /datadisk0
 
     # mount
-    mount /dev/sdc1 /datadisk0
+    # mount /dev/sdc1 /datadisk0
 
 # check if terminating
 elif [[ "${ACTION}" == "terminate" ]]; then
     # unmount
-    umount /dev/sdc1
+    # umount /dev/sdc1
 
-    # login using access token from msi
-    az login --identity
+    # # detach disk
+    # az vmss disk detach --resource-group ${MDS_RESOURCE_GROUP} --vmss-name ${MDS_VMSS_NAME} --instance-id ${VMSS_VM_INSTANCE_ID} --lun 0  
 
-    # detach disk
-    az vmss disk detach --resource-group ${MDS_RESOURCE_GROUP} --vmss-name ${MDS_VMSS_NAME} --instance-id ${VMSS_VM_INSTANCE_ID} --lun 0  
-
-    # delete the disk
-    az disk delete -n ${MDS_DISK_0_NAME} -g ${MDS_RESOURCE_GROUP} -y
+    # # delete the disk
+    # az disk delete -n ${MDS_DISK_0_NAME} -g ${MDS_RESOURCE_GROUP} -y
 fi
-

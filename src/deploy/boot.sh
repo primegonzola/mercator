@@ -254,27 +254,25 @@ az role assignment create --assignee-object-id ${CONSUL_VMSS_PRINCIPAL_ID} --sco
 az role assignment create --assignee-object-id ${SERVICES_PRINCIPAL_ID} --scope ${API_VMSS_ID} --role Contributor
 az role assignment create --assignee-object-id ${SERVICES_PRINCIPAL_ID} --scope ${API_VMSS_AUTOSCALE_ID} --role Contributor
 
-# hack to fix in order to be able to create/destroy a disk object dynamically
-az role assignment create --assignee-object-id ${MDS_VMSS_PRINCIPAL_ID} --resource-group ${RESOURCE_GROUP} --role Contributor
+# # hack to fix in order to be able to create/destroy a disk object dynamically
+# az role assignment create --assignee-object-id ${MDS_VMSS_PRINCIPAL_ID} --resource-group ${RESOURCE_GROUP} --role Contributor
 
 # scaling host
 display_progress "Scaling consul"
 az monitor autoscale update --ids ${CONSUL_VMSS_AUTOSCALE_ID} --count 3
 az vmss scale --new-capacity 3 --no-wait --ids ${CONSUL_VMSS_ID}
 
-display_progress "Scaling api"
-az monitor autoscale update --ids ${API_VMSS_AUTOSCALE_ID} --count 2
-az vmss scale --new-capacity 2 --no-wait --ids ${API_VMSS_ID}
+display_progress "Scaling mds"
+az monitor autoscale update --ids ${MDS_VMSS_AUTOSCALE_ID} --count 2
+az vmss scale --new-capacity 2 --no-wait --ids ${COREDB_VMSS_ID}
 
 display_progress "Scaling coredb"
 az monitor autoscale update --ids ${COREDB_VMSS_AUTOSCALE_ID} --count 2
 az vmss scale --new-capacity 2 --no-wait --ids ${COREDB_VMSS_ID}
 
-display_progress "Scaling mds"
-az monitor autoscale update --ids ${MDS_VMSS_AUTOSCALE_ID} --enabled false
-az monitor autoscale update --ids ${MDS_VMSS_AUTOSCALE_ID} --count 2
-az vmss scale --new-capacity 2 --no-wait --ids ${COREDB_VMSS_ID}
-az monitor autoscale update --ids ${MDS_VMSS_AUTOSCALE_ID} --enabled true
+display_progress "Scaling api"
+az monitor autoscale update --ids ${API_VMSS_AUTOSCALE_ID} --count 2
+az vmss scale --new-capacity 2 --no-wait --ids ${API_VMSS_ID}
 
 # add to current list to be monitored
 display_progress "Enabling key vault for services"

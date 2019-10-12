@@ -147,6 +147,10 @@ resource "azurerm_image" "host" {
     blob_uri              = "${var.os_image_uri}"
     caching               = "ReadWrite"
   }
+  data_disk {
+    lun                   = "0"
+    blob_uri              = "${var.data_image_uri}"
+  }
 }
 
 resource "azurerm_virtual_machine_scale_set" "host" {
@@ -218,7 +222,7 @@ resource "azurerm_virtual_machine_scale_set" "host" {
     settings                      = <<SETTINGS
     {
         "fileUris": [ "${local.file_download_uri}", "${local.file_init_uri}" ],
-        "commandToExecute": "./host-init.sh \"${var.project_name}\" \"${var.boot_storage_account_name}\" \"${var.boot_storage_account_key}\" \"${var.boot_storage_account_sas}\" \"VirtualMachineScaleSet\" \"${local.vmss_id}\" \"${var.host_role}\" \"${var.status_topic_id}\" \"${var.storage_account_id}\" \"${var.key_vault_id}\" \"${local.consul_vmss_id}\" \"${var.consul_tenant_id}\" \"${var.consul_client_id}\" \"${var.consul_client_key}\" \"${var.data_image_uri}\""
+        "commandToExecute": "./host-init.sh \"${var.project_name}\" \"${var.boot_storage_account_name}\" \"${var.boot_storage_account_key}\" \"${var.boot_storage_account_sas}\" \"VirtualMachineScaleSet\" \"${local.vmss_id}\" \"${var.host_role}\" \"${var.status_topic_id}\" \"${var.storage_account_id}\" \"${var.key_vault_id}\" \"${local.consul_vmss_id}\" \"${var.consul_tenant_id}\" \"${var.consul_client_id}\" \"${var.consul_client_key}\""
     }
 SETTINGS
   }

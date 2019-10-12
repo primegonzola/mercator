@@ -32,7 +32,8 @@
         "identities": "<identities>",
         "keyVaults": "<keyVaults>",
         "eventGrids": "<eventGrids>",
-        "automationAccounts": "<automationAccounts>"
+        "automationAccounts": "<automationAccounts>",
+        "disks": "<disks>"
       }
     },
     "uniqueNameFix": {
